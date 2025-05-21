@@ -1,0 +1,19 @@
+{
+    "java.configuration.updateBuildConfiguration": "interactive",
+
+    "java.test.config": {
+        "vmArgs": [
+            "--add-opens", "javafx.graphics/com.sun.javafx.application=ALL-UNNAMED",
+            "--add-opens", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED", // O org.testfx.core
+            "--add-opens", "javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED",
+            "--add-opens", "javafx.scene.control/com.sun.javafx.scene.control.behavior=ALL-UNNAMED",
+            "--add-opens", "javafx.scene.control/com.sun.javafx.scene.control=ALL-UNNAMED",
+            "--add-opens", "javafx.base/com.sun.javafx.event=ALL-UNNAMED",
+            "--add-opens", "javafx.base/com.sun.javafx.collections=ALL-UNNAMED",
+            "--add-opens", "javafx.graphics/com.sun.javafx.stage=ALL-UNNAMED",
+            "--add-opens", "javafx.graphics/com.sun.javafx.scene=ALL-UNNAMED",
+            "--add-opens", "javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED"
+            // Aggiungi altre --add-opens se necessario, identiche a quelle nel pom.xml
+        ]
+    }
+}
