@@ -1,0 +1,148 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>sad.gruppo11</groupId>
+    <artifactId>sprint1</artifactId>
+    <version>Sprint-1</version>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <javafx.version>13</javafx.version> <!-- La vostra versione di JavaFX -->
+        <junit.jupiter.version>5.10.2</junit.jupiter.version>
+        <mockito.version>5.11.0</mockito.version>
+        <assertj.version>3.25.3</assertj.version>
+        <testfx.version>4.0.16-alpha</testfx.version> <!-- Stabile e compatibile con JavaFX 11-17+ -->
+    </properties>
+
+    <dependencies>
+        <!-- Dipendenze JavaFX esistenti -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+        <!-- Aggiungi javafx-graphics se non è già una dipendenza transitiva, TestFX ne ha bisogno -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-graphics</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+
+        <!-- ====== DIPENDENZE DI TESTING ====== -->
+        <!-- JUnit 5 -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit.jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit.jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <version>${junit.jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Mockito -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- AssertJ -->
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- TestFX -->
+        <dependency>
+            <groupId>org.testfx</groupId>
+            <artifactId>testfx-core</artifactId>
+            <version>${testfx.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testfx</groupId>
+            <artifactId>testfx-junit5</artifactId>
+            <version>${testfx.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- ====== FINE DIPENDENZE DI TESTING ====== -->
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.0</version> <!-- La vostra versione va bene -->
+                <configuration>
+                    <release>11</release>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <version>0.0.8</version> <!-- Aggiornata leggermente, la 0.0.6 dovrebbe andare bene anche -->
+                <executions>
+                    <execution>
+                        <!-- Default configuration for running -->
+                        <!-- Usage: mvn clean javafx:run -->
+                        <id>default-cli</id>
+                        <configuration>
+                            <mainClass>sad.gruppo11.App</mainClass> <!-- Assicurati che sia corretto -->
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version> <!-- Versione recente che supporta bene JUnit 5 -->
+                <configuration>
+                    <!-- Queste argomentazioni sono spesso necessarie per TestFX su Java 9+ -->
+                    <!-- per permettere l'accesso a parti interne di JavaFX. -->
+                    <argLine>
+                        --add-opens javafx.graphics/com.sun.javafx.application=org.testfx.core
+                        --add-opens javafx.graphics/com.sun.glass.ui=org.testfx.core
+                        --add-opens javafx.graphics/com.sun.javafx.tk=org.testfx.core
+                        --add-opens javafx.scene.control/com.sun.javafx.scene.control.behavior=org.testfx.core
+                        --add-opens javafx.scene.control/com.sun.javafx.scene.control=org.testfx.core
+                        --add-opens javafx.base/com.sun.javafx.event=org.testfx.core
+                        --add-opens javafx.base/com.sun.javafx.collections=org.testfx.core
+                        --add-opens javafx.graphics/com.sun.javafx.stage=org.testfx.core
+                        --add-opens javafx.graphics/com.sun.javafx.scene=org.testfx.core
+                        --add-opens javafx.graphics/com.sun.javafx.scene.traversal=org.testfx.core
+
+                        --add-opens javafx.graphics/com.sun.javafx.application=ALL-UNNAMED
+                        --add-opens javafx.graphics/com.sun.glass.ui=ALL-UNNAMED
+                    </argLine>
+                </configuration>
+            </plugin>
+        </plugins>  
+    </build>
+</project>

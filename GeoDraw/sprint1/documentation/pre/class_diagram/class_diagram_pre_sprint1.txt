@@ -1,0 +1,181 @@
+@startuml
+skinparam style strictuml
+skinparam classAttributeIconSize 0
+' =================================================================
+'  SPRINT 1 – Class Diagram definitivo (US 1‑15)
+'  Patterns: MVC • Observer • State • Factory Method • Command • Prototype • Singleton • Visitor
+' =================================================================
+
+' ===================== VIEW =====================
+package View {
+  interface Observer {
+    +update(o : Object)
+  }
+
+  class DrawingView {
+    -controller : Controller.GeoEngine
+    -canvasPanel : CanvasPanel
+    +update(d : Model.Drawing)
+    +render()
+  }
+
+  DrawingView ..|> Observer
+
+  class CanvasPanel {
+    -gc : javafx.scene.canvas.GraphicsContext
+    +clear()
+    +draw(renderer : ShapeVisitor, shapes : List<Model.Shape>)
+  }
+
+  DrawingView --> CanvasPanel
+
+  interface ShapeVisitor {
+    +visit(r : Model.RectangleShape)
+    +visit(e : Model.EllipseShape)
+    +visit(l : Model.LineSegment)
+  }
+
+  class JavaFXShapeRenderer
+  JavaFXShapeRenderer ..|> ShapeVisitor
+}
+
+' =================== CONTROLLER ==================
+package Controller {
+  interface ToolState {
+    +onMousePressed(p : Point)
+    +onMouseDragged(p : Point)
+    +onMouseReleased(p : Point)
+  }
+
+  class LineState
+  class RectangleState
+  class EllipseState
+  class SelectState
+
+  LineState ..|> ToolState
+  RectangleState ..|> ToolState
+  EllipseState ..|> ToolState
+  SelectState ..|> ToolState
+
+  class GeoEngine {
+    -currentState : ToolState
+    -drawing : Model.Drawing
+    -cmdMgr : Infrastructure.CommandManager
+    -persistenceController : Persistence.PersistenceController
+    -clipboard : Infrastructure.Clipboard
+    +setState(state : ToolState)
+    +onMousePressed(p : Point)
+    +onMouseDragged(p : Point)
+    +onMouseReleased(p : Point)
+    +save(path : String)
+    +load(path : String)
+  }
+
+  GeoEngine --> ToolState : delegates
+  GeoEngine --> Model.Drawing
+  GeoEngine --> Infrastructure.CommandManager
+  GeoEngine --> Persistence.PersistenceController
+  GeoEngine --> Infrastructure.Clipboard
+}
+
+' ===================== MODEL =====================
+package Model {
+
+  interface Shape {
+    +getId() : UUID
+    +move(dx: int, dy : int)
+    +resize(bounds : Rect)
+    +setStrokeColor(c : Color)
+    +setFillColor(c : ColorData)
+    +contains(p : Point) : boolean
+    +accept(v : View.ShapeVisitor)
+    +clone() : Shape
+  }
+
+  class LineSegment
+  class RectangleShape
+  class EllipseShape
+
+  LineSegment ..|> Shape
+  RectangleShape ..|> Shape
+  EllipseShape ..|> Shape
+
+  class Drawing {
+    -shapes : List<Shape>
+    +add(s : Shape)
+    +remove(s : Shape)
+    +clear()
+    +iterator() : Iterator<Shape>
+  }
+
+  Drawing o-- "*" Shape
+}
+
+' =================== PERSISTENCE =================
+package Persistence {
+  class DrawingSerializer {
+    +save(d : Model.Drawing, path : String)
+    +load(path : String) : Model.Drawing
+  }
+
+  class PersistenceController {
+    -serializer : DrawingSerializer
+    +saveDrawing(d : Model.Drawing, path : String)
+    +loadDrawing(path : String) : Model.Drawing
+  }
+}
+
+' ================== INFRASTRUCTURE ===============
+package Infrastructure {
+  interface Command {
+    +execute()
+    +undo()
+  }
+
+  class AddShapeCommand
+  class DeleteShapeCommand
+  class MoveShapeCommand
+  class ResizeShapeCommand
+  class CutShapeCommand
+  class CopyShapeCommand
+  class ChangeStrokeColorCommand
+  class ChangeFillColorCommand
+
+  AddShapeCommand ..|> Command
+  DeleteShapeCommand ..|> Command
+  MoveShapeCommand ..|> Command
+  ResizeShapeCommand ..|> Command
+  CutShapeCommand ..|> Command
+  CopyShapeCommand ..|> Command
+  ChangeStrokeColorCommand ..|> Command
+  ChangeFillColorCommand ..|> Command
+
+  class CommandManager {
+    -undoStack : Stack<Command>
+    -redoStack : Stack<Command>
+    +execute(cmd : Command)
+    +undo()
+    +redo()
+  }
+
+  CommandManager --> Command
+
+  class Clipboard {
+    {static} getInstance() : Clipboard
+    +set(shape : Model.Shape)
+    +get() : Model.Shape
+  }
+
+  Clipboard <<singleton>>
+}
+
+' ====================== FACTORY ===================
+package Factory {
+  class ShapeFactory {
+    +createShape(tool : Controller.ToolState, p1 : Point, p2 : Point) : Model.Shape
+  }
+
+  ToolState --> ShapeFactory
+  ShapeFactory --> Model.Shape
+}
+@enduml
