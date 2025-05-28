@@ -1,0 +1,119 @@
+@startuml
+title Prototype Pattern Focus (for Shape Cloning/Copying)
+
+skinparam style strictuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontName Arial
+skinparam stereotypeCBackgroundColor PaleGreen
+skinparam stereotypeIBackgroundColor LightSkyBlue
+skinparam packageStyle Rectangle
+
+' ===================== MODEL (Prototypes and ConcretePrototypes) =====================
+package Model <<Prototypes>> {
+
+  interface Shape <<Prototype>> {
+    + clone() : Shape
+    + getId() : java.util.UUID
+    + getBounds() : geometry.Rect
+    + getStrokeColor() : geometry.ColorData
+    + getFillColor() : geometry.ColorData
+  }
+  note right of Shape
+    The Prototype interface declares
+    a cloning method.
+  end note
+
+  class LineSegment <<ConcretePrototype>> implements Shape {
+    - startPoint: geometry.Point2D
+    - endPoint: geometry.Point2D
+    - strokeColor: geometry.ColorData
+    + LineSegment(start: geometry.Point2D, end: geometry.Point2D, stroke: geometry.ColorData)
+    + clone() : Shape
+  }
+  note top of LineSegment
+    ConcretePrototype implements the cloning
+    method using copy constructor or manual copy.
+  end note
+
+  class RectangleShape <<ConcretePrototype>> implements Shape {
+    - bounds: geometry.Rect
+    - strokeColor: geometry.ColorData
+    - fillColor: geometry.ColorData
+    + clone() : Shape
+  }
+
+  class EllipseShape <<ConcretePrototype>> implements Shape {
+    - bounds: geometry.Rect
+    - strokeColor: geometry.ColorData
+    - fillColor: geometry.ColorData
+    + clone() : Shape
+  }
+
+  package geometry <<Details>> {
+    class Point2D
+    class Rect
+    class ColorData
+    class Vector2D
+  }
+}
+
+' ================== INFRASTRUCTURE (Client using Prototype for Copy/Paste) ===============
+package Infrastructure <<Client Example>> {
+
+  class Clipboard <<Singleton>> {
+    - content : Model.Shape
+    + set(shape : Model.Shape)
+    + get() : Model.Shape
+    + isEmpty() : boolean
+  }
+  note bottom of Clipboard : Stores a cloned Shape instance.
+
+  class CopyShapeCommand {
+    - shapeToCopy : Model.Shape
+    - clipboard : Clipboard
+    + CopyShapeCommand(shape: Model.Shape, clipboard: Clipboard)
+    + execute()
+  }
+  note top of CopyShapeCommand
+    Client of Prototype: copies a shape using clone()
+    and stores it in the clipboard.
+  end note
+
+  class PasteShapeCommand {
+    - drawing : Model.Drawing
+    - clipboard : Clipboard
+    - pastePositionOffset : Model.geometry.Vector2D
+    + PasteShapeCommand(drawing: Model.Drawing, clipboard: Clipboard, offset: Model.geometry.Vector2D)
+    + execute()
+  }
+  note top of PasteShapeCommand
+    Gets prototype from clipboard, clones it,
+    and pastes it in the drawing with offset.
+  end note
+
+  class Drawing <<Model Detail>> {
+    + addShape(s: Model.Shape)
+  }
+}
+
+' ====================== PROTOTYPE PATTERN INTERACTIONS ===================
+
+Infrastructure.CopyShapeCommand -[#blue,thickness=2]> Model.Shape : (has shapeToCopy)
+Infrastructure.CopyShapeCommand -[#green,thickness=2]> Model.Shape : calls clone()
+Model.LineSegment .[#purple,thickness=2].> Model.LineSegment : creates copy
+Model.Shape -[#orange,thickness=2]-> Infrastructure.CopyShapeCommand : returns cloned Shape
+
+Infrastructure.PasteShapeCommand ..> Infrastructure.Clipboard : gets prototype
+Infrastructure.Clipboard -[#blue,thickness=2]> Model.Shape : clipboard.get()
+Infrastructure.PasteShapeCommand -[#green,thickness=2]> Model.Shape : calls clone()
+Model.Shape -[#orange,thickness=2]-> Infrastructure.PasteShapeCommand : returns cloned Shape
+
+Model.LineSegment ..|> Model.Shape
+Model.RectangleShape ..|> Model.Shape
+Model.EllipseShape ..|> Model.Shape
+
+Infrastructure.CopyShapeCommand o--> Infrastructure.Clipboard : uses
+Infrastructure.PasteShapeCommand o--> Infrastructure.Clipboard : uses
+Infrastructure.PasteShapeCommand o--> Model.Drawing : uses
+
+@enduml

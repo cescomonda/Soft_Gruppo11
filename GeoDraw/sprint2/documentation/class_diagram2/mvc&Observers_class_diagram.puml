@@ -1,0 +1,159 @@
+@startuml
+title MVC and Observer Pattern Focus
+
+skinparam style strictuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontName Arial
+skinparam stereotypeCBackgroundColor PaleGreen
+skinparam stereotypeIBackgroundColor LightSkyBlue
+skinparam packageStyle Rectangle
+
+' ===================== MODEL (MVC Layer) =====================
+package Model <<MVC Layer>> {
+
+  interface Observable <<Subject>> {
+    + attach(o : View.Observer)
+    + detach(o : View.Observer)
+    + notifyObservers(arg : Object)
+  }
+
+  interface Shape {
+    + getId() : java.util.UUID
+    ' --- Other shape methods (less relevant for MVC/Observer focus) ---
+    '+ move(v : geometry.Vector2D)
+    '+ resize(bounds : geometry.Rect)
+    '+ setStrokeColor(c : geometry.ColorData)
+    '+ ...
+    + accept(v : View.ShapeVisitor) ' Still relevant for View's rendering
+    + clone() : Shape ' Relevant for Model state changes
+    + getBounds() : geometry.Rect
+  }
+  note right of Shape : Represents the data elements.
+
+  class Drawing <<ConcreteSubject>> implements Observable {
+    - shapes : List<Shape>
+    - observers : List<View.Observer>
+    + Drawing()
+    + addShape(s : Shape)  ' Modifies state, will trigger notifyObservers
+    + removeShape(s : Shape) ' Modifies state, will trigger notifyObservers
+    + clear()              ' Modifies state, will trigger notifyObservers
+    + getShapes() : Iterable<Shape> ' For View to read
+    + attach(o : View.Observer)
+    + detach(o : View.Observer)
+    + notifyObservers(arg : Object)
+  }
+  note left of Drawing
+    The core Model component.
+    Manages Shapes and notifies
+    Observers (View) of changes.
+  end note
+
+  Drawing o-- "*" Shape : contains
+
+  ' Geometry package can be collapsed for this view if needed
+  package geometry <<Details>> {
+    class Point2D
+    class Vector2D
+    class ColorData
+    class Rect
+  }
+}
+
+' ===================== VIEW (MVC Layer) =====================
+package View <<MVC Layer>> {
+  interface Observer <<Observer>> {
+    + update(source: Model.Observable, arg: Object)
+  }
+
+  class DrawingView implements Observer {
+    - controller : Controller.GeoEngine
+    - canvasPanel : CanvasPanel
+    + DrawingView(controller: Controller.GeoEngine, canvasPanel: CanvasPanel)
+    + update(source: Model.Observable, arg: Object) ' Called by Model (Drawing)
+    + render() ' Triggers CanvasPanel to draw
+    ' --- UI methods for user interaction ---
+    '+ getUserInputForPath(saveDialog: boolean): String
+    '+ showError(message: String)
+  }
+  note right of DrawingView
+    The main View component.
+    Observes the Model (Drawing)
+    and delegates rendering.
+    Forwards user input to Controller.
+  end note
+
+
+  DrawingView --> CanvasPanel : uses >
+
+  class CanvasPanel {
+    - gc : javafx.scene.canvas.GraphicsContext
+    - renderer : ShapeVisitor
+    + CanvasPanel(gc: javafx.scene.canvas.GraphicsContext)
+    + clear()
+    + drawShapes(shapes : Iterable<Model.Shape>)
+  }
+  note left of CanvasPanel : Responsible for actual drawing on the screen.
+
+  ' Visitor is a detail of how View renders, can be simplified here
+  interface ShapeVisitor <<Details>> {
+     '+ visit(r : Model.RectangleShape) ...
+  }
+}
+
+' =================== CONTROLLER (MVC Layer) ==================
+package Controller <<MVC Layer>> {
+  class GeoEngine {
+    - drawing : Model.Drawing
+    - view : View.DrawingView ' Can be used to request UI elements if needed
+    ' --- Other dependencies (CommandManager, Factory, etc. - less focus for MVC diagram) ---
+    '- cmdMgr : Infrastructure.CommandManager
+    '- persistenceController : Persistence.PersistenceController
+    '- clipboard : Infrastructure.Clipboard
+    '- shapeFactory : Factory.ShapeFactory
+    '- currentState : ToolState
+
+    + GeoEngine(drawing: Model.Drawing)
+    + setView(view: View.DrawingView) ' To link View for input or simple UI calls
+
+    ' Methods called by View in response to user actions
+    + handleMousePressed(p : Model.geometry.Point2D)
+    + handleMouseDragged(p : Model.geometry.Point2D)
+    + handleMouseReleased(p : Model.geometry.Point2D)
+    + handleAddRectangleRequest(p1: Model.geometry.Point2D, p2: Model.geometry.Point2D) ' Example
+    + handleSaveRequest()
+    + handleLoadRequest()
+    ' ... other user action handlers ...
+  }
+  note right of GeoEngine
+    Acts as the Controller.
+    Receives input from the View.
+    Manipulates the Model.
+    Does NOT directly update the View
+    (View updates via Observer pattern).
+  end note
+
+  ' ToolState is a detail of GeoEngine's internal behavior, can be simplified/omitted for pure MVC view
+  interface ToolState <<Details>> {
+    '+ onMousePressed(engine: GeoEngine, p : Model.geometry.Point2D) ...'
+  }
+}
+
+' ====================== MVC/OBSERVER INTERACTIONS ===================
+
+' 1. View forwards user input to Controller
+View.DrawingView --[#blue]> Controller.GeoEngine : forwardsUserInput
+
+' 2. Controller manipulates the Model
+Controller.GeoEngine --[#green]> Model.Drawing : manipulatesState
+
+' 3. Model (Subject) notifies its Observers (View)
+Model.Drawing --[#red,thickness=2]> View.DrawingView : notifies (arg: Object)
+
+' 4. View, after notification, reads updated state from Model to render
+View.DrawingView .[#purple].> Model.Drawing : readsStateForRender
+View.CanvasPanel .[#purple].> Model.Shape : readsShapeDataForRender
+
+' Relationship for Observer Pattern
+Model.Drawing *-- "observers" View.Observer : (maintains list of)
+
+@enduml

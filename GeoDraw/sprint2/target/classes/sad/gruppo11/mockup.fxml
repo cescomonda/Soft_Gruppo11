@@ -1,0 +1,421 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ColorPicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.paint.Color?>
+
+<!-- Aggiunto StackPane -->
+
+<BorderPane prefHeight="700.0" prefWidth="1000.0" style="-fx-background-color: #e0e0e0;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
+   <center>   
+      <StackPane fx:id="canvasHolder" prefHeight="735.0" prefWidth="562.0" style="-fx-background-color: #FFFFFF;" />
+   </center>
+   <left>
+      <ScrollPane hbarPolicy="NEVER" prefHeight="751.0" prefWidth="225.0" BorderPane.alignment="CENTER">
+         <content>
+            <VBox prefHeight="855.0" prefWidth="201.0">
+               <children>
+                      <!-- Search Shape -->
+                      <HBox alignment="CENTER_LEFT" disable="true" spacing="5.0" style="-fx-background-color: white; -fx-border-color: #cccccc; -fx-border-radius: 5; -fx-background-radius: 5; -fx-padding: 5;">
+                          <TextField promptText="Search Shape" style="-fx-background-color: transparent; -fx-border-color: transparent;" HBox.hgrow="ALWAYS" />
+                          <Button style="-fx-padding: 2;">
+                        <graphic>
+                           <ImageView fitHeight="150.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                              <image>
+                                 <Image url="@icon/search.png" />
+                              </image>
+                           </ImageView>
+                        </graphic>
+                          </Button>
+                     <VBox.margin>
+                        <Insets bottom="5.0" />
+                     </VBox.margin>
+                      </HBox>
+      
+                            <!-- Shapes -->
+                      <TitledPane animated="false" collapsible="true" text="Instruments" VBox.vgrow="NEVER">
+                          <content>
+                              <VBox spacing="10.0" style="-fx-padding: 10;">
+                                  <Button fx:id="selectToolButton" prefWidth="Infinity" style="-fx-background-color: #d0d0d0; -fx-background-radius: 15;">
+                              <graphic>
+                                 <ImageView fitHeight="25.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+                                    <image>
+                                       <Image url="@icon/cursor.png" />
+                                    </image>
+                                 </ImageView>
+                              </graphic>
+                           </Button>
+                                  <Button fx:id="lineToolButton" prefWidth="Infinity" style="-fx-background-color: #e0e0e0; -fx-background-radius: 15;">
+                              <graphic>
+                                 <ImageView fitHeight="25.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+                                    <image>
+                                       <Image url="@icon/segmento.png" />
+                                    </image>
+                                 </ImageView>
+                              </graphic>
+                                  </Button>
+                                  <Button fx:id="ellipseToolButton" prefWidth="Infinity" style="-fx-background-color: #e0e0e0; -fx-background-radius: 15;">
+                              <graphic>
+                                 <ImageView fitHeight="25.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+                                    <image>
+                                       <Image url="@icon/ellisse.png" />
+                                    </image>
+                                 </ImageView>
+                              </graphic>
+                                  </Button>
+                                  <Button fx:id="rectangleToolButton" prefWidth="Infinity" style="-fx-background-color: #e0e0e0; -fx-background-radius: 15;">
+                              <graphic>
+                                 <ImageView fitHeight="25.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+                                    <image>
+                                       <Image url="@icon/rettangolo.png" />
+                                    </image>
+                                 </ImageView>
+                              </graphic>
+                                  </Button>
+                                  <Button fx:id="polygonToolButton" prefWidth="Infinity" style="-fx-background-color: #e0e0e0; -fx-background-radius: 15;">
+                              <graphic>
+                                 <ImageView fitHeight="25.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+                                    <image>
+                                       <Image url="@icon/hourglass2.png" />
+                                    </image>
+                                 </ImageView>
+                              </graphic>
+                                  </Button>
+                                  <Button fx:id="textToolButton" prefWidth="Infinity" style="-fx-background-color: #e0e0e0; -fx-background-radius: 15;">
+                              <graphic>
+                                 <ImageView fitHeight="25.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+                                    <image>
+                                       <Image url="@icon/add_text.png" />
+                                    </image>
+                                 </ImageView>
+                              </graphic>
+                                  </Button>
+                              </VBox>
+                          </content>
+                     <VBox.margin>
+                        <Insets bottom="5.0" top="5.0" />
+                     </VBox.margin>
+                      </TitledPane>
+      
+                            <!-- Commands -->
+                      <TitledPane animated="false" collapsible="true" text="Commands &amp; Tools">
+                          <content>
+                              <GridPane alignment="CENTER" hgap="5" style="-fx-padding: 10;" vgap="5">
+                                  <columnConstraints>
+                                      <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" />
+                                      <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" />
+                                      <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" />
+                                  </columnConstraints>
+                                  <rowConstraints>
+                                      <RowConstraints minHeight="10.0" valignment="CENTER" vgrow="SOMETIMES" />
+                                      <RowConstraints minHeight="10.0" valignment="CENTER" vgrow="SOMETIMES" />
+                                      <RowConstraints minHeight="10.0" valignment="CENTER" vgrow="SOMETIMES" />
+                                      <RowConstraints minHeight="10.0" valignment="CENTER" vgrow="SOMETIMES" /> <!-- Aggiunta riga per Open/Save/Delete -->
+                                  </rowConstraints>
+                                  <children>
+                                      <Button fx:id="undoButton" prefHeight="30" prefWidth="40" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                                 <graphic>
+                                    <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@icon/undo.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                              </Button>
+                                      <Button fx:id="redoButton" prefHeight="30" prefWidth="40" GridPane.columnIndex="2">
+                                 <graphic>
+                                    <ImageView fitHeight="20.0" fitWidth="20.0" nodeOrientation="RIGHT_TO_LEFT" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@icon/redo.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                              </Button>
+                                      
+                                            <Button fx:id="copyButton" prefHeight="30" prefWidth="40" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                                 <graphic>
+                                    <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@icon/copy.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                              </Button> <!-- Copy -->
+                                      <Button fx:id="pasteButton" prefHeight="30" prefWidth="40" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                 <graphic>
+                                    <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@icon/paste.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                              </Button> <!-- Paste -->
+                                      <Button fx:id="cutButton" prefHeight="30" prefWidth="40" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                                 <graphic>
+                                    <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@icon/cut.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                              </Button> <!-- Cut -->
+                                      
+                                            <Button fx:id="bringToFrontButton" disable="true" prefHeight="30" prefWidth="40" GridPane.columnIndex="0" GridPane.rowIndex="2">
+                                 <graphic>
+                                    <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@icon/1_floor.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                              </Button> <!-- Bring to front -->
+                                      <Button fx:id="sendToBackButton" disable="true" prefHeight="30" prefWidth="40" GridPane.columnIndex="2" GridPane.rowIndex="2">
+                                 <graphic>
+                                    <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@icon/2_floor.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                              </Button> <!-- Send to back -->
+                                      
+                                            <Button fx:id="openButton" prefHeight="30" prefWidth="40" GridPane.columnIndex="0" GridPane.rowIndex="3">
+                                 <graphic>
+                                    <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@icon/folder.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                              </Button> <!-- Open -->
+                                      <Button fx:id="saveButton" prefHeight="30" prefWidth="40" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                                 <graphic>
+                                    <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@icon/save.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                              </Button> <!-- Save -->
+                                      <Button fx:id="deleteButton" prefHeight="30" prefWidth="40" GridPane.columnIndex="2" GridPane.rowIndex="3">
+                                 <graphic>
+                                    <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@icon/delete.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                              </Button> <!-- Delete -->
+                                  </children>
+                              </GridPane>
+                          </content>
+                     <VBox.margin>
+                        <Insets bottom="5.0" top="5.0" />
+                     </VBox.margin>
+                      </TitledPane>
+                  <TitledPane animated="false" prefHeight="122.0" prefWidth="191.0" text="Grid">
+                     <content>
+                        <VBox prefHeight="200.0" prefWidth="100.0">
+                           <children>
+                              <RadioButton fx:id="gridStatus" mnemonicParsing="false" text="Enable">
+                                 <VBox.margin>
+                                    <Insets bottom="5.0" />
+                                 </VBox.margin>
+                              </RadioButton>
+                              <HBox prefHeight="100.0" prefWidth="200.0">
+                                 <children>
+                                    <Label prefHeight="17.0" prefWidth="65.0" text="Size">
+                                       <HBox.margin>
+                                          <Insets right="5.0" top="5.0" />
+                                       </HBox.margin>
+                                    </Label>
+                                    <TextField fx:id="gridSize" promptText="1">
+                                       <HBox.margin>
+                                          <Insets left="5.0" />
+                                       </HBox.margin>
+                                    </TextField>
+                                 </children>
+                                 <VBox.margin>
+                                    <Insets top="5.0" />
+                                 </VBox.margin>
+                              </HBox>
+                           </children>
+                        </VBox>
+                     </content>
+                     <VBox.margin>
+                        <Insets top="5.0" />
+                     </VBox.margin>
+                  </TitledPane>
+               </children>
+               <padding>
+                  <Insets left="10.0" top="10.0" />
+               </padding>
+            </VBox>
+         </content>
+      </ScrollPane>
+   </left>
+   <right>
+      <ScrollPane hbarPolicy="NEVER" prefHeight="200.0" prefWidth="225.0" BorderPane.alignment="CENTER">
+         <content>
+            <VBox prefHeight="855.0" prefWidth="201.0">
+               <children>
+                      <TextField fx:id="shapeNamePropertyField" disable="true" promptText="Name Shape" style="-fx-background-color: white; -fx-border-color: #cccccc; -fx-border-radius: 5; -fx-background-radius: 5; -fx-padding: 5;">
+                     <VBox.margin>
+                        <Insets bottom="5.0" />
+                     </VBox.margin>
+                  </TextField>
+                      <TitledPane animated="false" collapsible="true" maxHeight="96.0" maxWidth="191.0" text="Stretch">
+                          <content>
+                              <VBox disable="true" spacing="5.0" style="-fx-padding: 10;">
+                                  <HBox spacing="5.0">
+                              <Label text="X">
+                                 <HBox.margin>
+                                    <Insets bottom="5.0" top="5.0" />
+                                 </HBox.margin>
+                              </Label>
+                                      <TextField fx:id="shapeStretchXField" promptText="X" HBox.hgrow="ALWAYS" />
+                              <Label text="Y">
+                                 <HBox.margin>
+                                    <Insets bottom="5.0" left="5.0" top="5.0" />
+                                 </HBox.margin>
+                              </Label>
+                                      <TextField fx:id="shapeStretchYField" promptText="Y" HBox.hgrow="ALWAYS" />
+                                  </HBox>
+                              </VBox>
+                          </content>
+                     <VBox.margin>
+                        <Insets bottom="5.0" top="5.0" />
+                     </VBox.margin>
+                      </TitledPane>
+                  <TitledPane animated="false" collapsible="true" maxHeight="95.0" maxWidth="191.0" text="Scale">
+                     <content>
+                        <VBox spacing="5.0" style="-fx-padding: 10;">
+                           <children>
+                              <Label text="Scale Factor" />
+                              <TextField fx:id="shapeScaleField" promptText="1.0" />
+                           </children>
+                        </VBox>
+                     </content>
+                     <VBox.margin>
+                        <Insets bottom="5.0" top="5.0" />
+                     </VBox.margin>
+                  </TitledPane>
+                      <TitledPane animated="false" collapsible="true" maxHeight="95.0" maxWidth="191.0" text="Rotation">
+                          <content>
+                              <VBox prefHeight="84.0" prefWidth="167.0" spacing="5.0" style="-fx-padding: 10;">
+                                  <Label text="Rotation" />
+                                  <HBox alignment="CENTER_LEFT" spacing="5">
+                              <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@icon/angle.png" />
+                                 </image>
+                              </ImageView>
+                                      <TextField fx:id="shapeRotationField" promptText="0" HBox.hgrow="ALWAYS" />
+                                      <Label style="-fx-font-size: 14px;" text="°" />
+                                  </HBox>
+                              </VBox>
+                          </content>
+                     <VBox.margin>
+                        <Insets bottom="5.0" top="5.0" />
+                     </VBox.margin>
+                      </TitledPane>
+                      <TitledPane animated="false" collapsible="true" maxHeight="136.0" maxWidth="191.0" text="Colors">
+                          <content>
+                              <VBox prefHeight="90.0" prefWidth="167.0" spacing="5.0" style="-fx-padding: 10;">
+                                  <HBox alignment="CENTER_LEFT" spacing="10">
+                              <Label minWidth="49.0" text="Fill">
+                                 <HBox.margin>
+                                    <Insets right="5.0" top="5.0" />
+                                 </HBox.margin>
+                              </Label>
+                                      <ColorPicker fx:id="fillColorPicker" maxHeight="26.0" maxWidth="108.0" minHeight="26.0" minWidth="108.0" prefHeight="26.0" prefWidth="100.0">
+                                          <value> <Color red="0.0" green="0.0" blue="0.0" opacity="0.0" /> </value>
+                                 <HBox.margin>
+                                    <Insets left="5.0" />
+                                 </HBox.margin> <!-- Default trasparente -->
+                                      </ColorPicker>
+                              <VBox.margin>
+                                 <Insets bottom="5.0" />
+                              </VBox.margin>
+                                  </HBox>
+                           <HBox prefHeight="100.0" prefWidth="200.0">
+                              <children>
+                                 <Label maxWidth="59.0" prefHeight="17.0" prefWidth="59.0" text="Stoke">
+                                    <HBox.margin>
+                                       <Insets right="5.0" top="5.0" />
+                                    </HBox.margin>
+                                 </Label>
+                                         <ColorPicker fx:id="strokeColorPicker" maxHeight="26.0" maxWidth="116.0" minHeight="26.0" minWidth="108.0" prefHeight="26.0" prefWidth="108.0">
+                                             <value> <Color red="0.0" green="0.0" blue="0.0" /> </value>
+                                    <HBox.margin>
+                                       <Insets left="5.0" />
+                                    </HBox.margin> <!-- Default nero -->
+                                         </ColorPicker>
+                              </children>
+                              <VBox.margin>
+                                 <Insets top="5.0" />
+                              </VBox.margin>
+                           </HBox>
+                              </VBox>
+                          </content>
+                     <VBox.margin>
+                        <Insets bottom="5.0" top="5.0" />
+                     </VBox.margin>
+                      </TitledPane>
+                  <TitledPane animated="false" maxHeight="120.0" maxWidth="191.0" text="Text">
+                     <content>
+                        <VBox prefHeight="55.0" prefWidth="172.0">
+                           <children>
+                              <TextField fx:id="textContentField" promptText="Insert Text...">
+                                 <VBox.margin>
+                                    <Insets bottom="5.0" top="5.0" />
+                                 </VBox.margin>
+                              </TextField>
+                              <HBox prefHeight="26.0" prefWidth="200.0">
+                                 <children>
+                                    <Label prefHeight="17.0" prefWidth="65.0" text="Text Size">
+                                       <HBox.margin>
+                                          <Insets right="5.0" top="5.0" />
+                                       </HBox.margin>
+                                    </Label>
+                                    <TextField fx:id="textFontSizeField" maxWidth="90.0" promptText="12">
+                                       <HBox.margin>
+                                          <Insets left="5.0" />
+                                       </HBox.margin>
+                                    </TextField>
+                                 </children>
+                                 <VBox.margin>
+                                    <Insets bottom="5.0" top="5.0" />
+                                 </VBox.margin>
+                              </HBox>
+                           </children>
+                        </VBox>
+                     </content>
+                     <VBox.margin>
+                        <Insets bottom="5.0" top="5.0" />
+                     </VBox.margin>
+                  </TitledPane>
+               </children>
+               <padding>
+                  <Insets left="10.0" top="10.0" />
+               </padding>
+            </VBox>
+         </content>
+      </ScrollPane>
+   </right>
+</BorderPane>

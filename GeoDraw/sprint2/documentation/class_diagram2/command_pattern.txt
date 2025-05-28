@@ -1,0 +1,180 @@
+@startuml
+title Controller and Command Pattern Focus
+
+skinparam style strictuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontName Arial
+skinparam stereotypeCBackgroundColor PaleGreen
+skinparam stereotypeIBackgroundColor LightSkyBlue
+skinparam packageStyle Rectangle
+
+' ===================== MODEL (Receivers for Commands) =====================
+package Model <<MVC Layer - Receivers>> {
+  interface Shape <<Receiver (for shape-specific commands)>> {
+    + getId() : java.util.UUID
+    + move(v : geometry.Vector2D)
+    + resize(bounds : geometry.Rect)
+    + setStrokeColor(c : geometry.ColorData)
+    + getStrokeColor() : geometry.ColorData
+    + setFillColor(c : geometry.ColorData)
+    + getFillColor() : geometry.ColorData
+    + getBounds() : geometry.Rect
+    ' ... other methods ...
+  }
+  note right of Shape: Acts as Receiver for commands like Move, Resize, ChangeColor.
+
+  class Drawing <<Receiver (for drawing-level commands)>> {
+    - shapes : List<Shape>
+    + addShape(s : Shape)
+    + removeShape(s : Shape)
+    ' ... other methods ...
+  }
+  note left of Drawing: Acts as Receiver for commands like AddShape, DeleteShape.
+
+  Drawing o-- "*" Shape : contains
+
+  package geometry <<Details>> {
+    class Point2D
+    class Vector2D
+    class ColorData
+    class Rect
+  }
+}
+
+' =================== CONTROLLER (Client for Commands) ==================
+package Controller <<MVC Layer - Client>> {
+  class GeoEngine <<Client (Command Pattern)>> {
+    - drawing : Model.Drawing
+    - cmdMgr : Infrastructure.CommandManager <<Invoker>>
+    - selectedShape : Model.Shape ' Example: shape currently selected by user
+    ' --- Other dependencies (View, Factory, etc. - less focus here) ---
+
+    + GeoEngine(drawing: Model.Drawing, cmdMgr: Infrastructure.CommandManager)
+
+    ' Methods that CREATE and EXECUTE commands via CommandManager
+    + handleAddShapeRequest(shapeToAdd: Model.Shape)
+      ' cmd = new AddShapeCommand(this.drawing, shapeToAdd)
+      ' cmdMgr.executeCommand(cmd)
+    
+    + handleDeleteShapeRequest(shapeToDelete: Model.Shape)
+      ' cmd = new DeleteShapeCommand(this.drawing, shapeToDelete)
+      ' cmdMgr.executeCommand(cmd)
+    
+    + handleMoveShapeRequest(shapeToMove: Model.Shape, delta: Model.geometry.Vector2D)
+      ' cmd = new MoveShapeCommand(shapeToMove, delta)
+      ' cmdMgr.executeCommand(cmd)
+    
+    ' ... other similar handlers for resize, color change, cut, copy, paste ...
+
+    + handleUndoRequest()
+      ' cmdMgr.undo()
+    
+    + handleRedoRequest()
+      ' cmdMgr.redo()
+  }
+  note right of GeoEngine
+    The Client in the Command Pattern.
+    It creates ConcreteCommand objects
+    and passes them to the Invoker
+    (CommandManager) for execution.
+  end note
+}
+
+' ================== INFRASTRUCTURE (Command Pattern Implementation) ===============
+package Infrastructure <<Command Pattern Core>> {
+  interface Command <<Command>> {
+    + execute()
+    + undo()
+  }
+
+  ' --- Concrete Commands ---
+  ' Each command holds its receiver and parameters needed for execution/undo
+  class AddShapeCommand implements Command {
+    - receiverDrawing : Model.Drawing
+    - shapeToAdd : Model.Shape
+    + AddShapeCommand(drawing : Model.Drawing, shape : Model.Shape)
+    + execute() ' receiverDrawing.addShape(shapeToAdd)
+    + undo()    ' receiverDrawing.removeShape(shapeToAdd)
+  }
+
+  class DeleteShapeCommand implements Command {
+    - receiverDrawing : Model.Drawing
+    - shapeToRemove : Model.Shape
+    - originalIndex : int ' For proper undo
+    + DeleteShapeCommand(drawing : Model.Drawing, shape : Model.Shape)
+    + execute() ' receiverDrawing.removeShape(shapeToRemove) and stores originalIndex
+    + undo()    ' receiverDrawing.addShape(shapeToRemove, originalIndex)
+  }
+
+  class MoveShapeCommand implements Command {
+    - receiverShape : Model.Shape
+    - moveVector : Model.geometry.Vector2D
+    + MoveShapeCommand(shape : Model.Shape, vector : Model.geometry.Vector2D)
+    + execute() ' receiverShape.move(moveVector)
+    + undo()    ' receiverShape.move(inverse of moveVector)
+  }
+  ' ... Other Concrete Commands (Resize, ChangeColor, Cut, Copy, Paste) would follow similar structure ...
+  ' For brevity, not all are fully detailed here.
+  class ResizeShapeCommand implements Command
+  class ChangeStrokeColorCommand implements Command
+  class CutShapeCommand implements Command
+  class CopyShapeCommand implements Command
+  class PasteShapeCommand implements Command
+
+
+  class CommandManager <<Invoker>> {
+    - undoStack : java.util.Stack<Command>
+    - redoStack : java.util.Stack<Command>
+    + CommandManager()
+    + executeCommand(cmd : Command) ' Pushes to undoStack, clears redoStack, cmd.execute()
+    + undo()                       ' Pops from undoStack, cmd.undo(), pushes to redoStack
+    + redo()                       ' Pops from redoStack, cmd.execute(), pushes to undoStack
+    + canUndo() : boolean
+    + canRedo() : boolean
+  }
+  note right of CommandManager
+    The Invoker. It does not know about
+    the concrete commands or receivers.
+    It only knows the Command interface.
+    Manages undo/redo stacks.
+  end note
+}
+
+' ====================== COMMAND PATTERN INTERACTIONS ===================
+
+' 1. Client (GeoEngine) creates a ConcreteCommand, configuring it with a Receiver (Model) and parameters.
+Controller.GeoEngine --[#purple]> Infrastructure.AddShapeCommand : creates >
+Infrastructure.AddShapeCommand ..> Model.Drawing : configuredWithReceiver
+
+Controller.GeoEngine --[#purple]> Infrastructure.MoveShapeCommand : creates >
+Infrastructure.MoveShapeCommand ..> Model.Shape : configuredWithReceiver
+
+' 2. Client asks Invoker (CommandManager) to execute the command.
+Controller.GeoEngine --[#orange]> Infrastructure.CommandManager : requestsExecution (cmd)
+
+' 3. Invoker executes the command (calling cmd.execute()).
+Infrastructure.CommandManager --[#blue]> Infrastructure.Command : calls execute()
+
+' 4. ConcreteCommand's execute() method calls operations on its Receiver.
+Infrastructure.AddShapeCommand --[#green]> Model.Drawing : calls addShape()
+Infrastructure.MoveShapeCommand --[#green]> Model.Shape : calls move()
+
+' For Undo:
+' Client requests undo from Invoker
+Controller.GeoEngine --[#cyan]> Infrastructure.CommandManager : requestsUndo
+
+' Invoker calls undo() on the command from the stack
+Infrastructure.CommandManager --[#red]> Infrastructure.Command : calls undo()
+
+' ConcreteCommand's undo() method calls inverse operations on its Receiver
+Infrastructure.AddShapeCommand --[#magenta]> Model.Drawing : calls removeShape() ' (as part of undo)
+
+
+' Relationships:
+Controller.GeoEngine o--> Infrastructure.CommandManager : uses
+Controller.GeoEngine o--> Model.Drawing : manipulates
+Controller.GeoEngine o--> Model.Shape : manipulates (selectedShape)
+
+Infrastructure.CommandManager o-- "*" Infrastructure.Command : historyOf >
+
+@enduml

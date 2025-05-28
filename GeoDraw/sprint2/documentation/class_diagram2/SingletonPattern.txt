@@ -1,0 +1,76 @@
+@startuml
+title Singleton Pattern Focus (for Clipboard)
+
+skinparam style strictuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontName Arial
+skinparam stereotypeCBackgroundColor PaleGreen
+skinparam stereotypeIBackgroundColor LightSkyBlue
+skinparam packageStyle Rectangle
+
+' ===================== MODEL (Content of the Clipboard) =====================
+package Model <<Content Type>> {
+  interface Shape {
+    ' Methods of Shape (not detailed here)
+  }
+  note right of Shape : Type of object stored in the Clipboard.
+}
+
+' ================== INFRASTRUCTURE (Singleton Implementation and Clients) ===============
+package Infrastructure <<Singleton and Clients>> {
+
+  class Clipboard <<Singleton>> {
+    - {static} instance : Clipboard
+    - content : Model.Shape
+    - Clipboard()
+    + {static} getInstance() : Clipboard
+    + set(shape : Model.Shape)
+    + get() : Model.Shape
+    + isEmpty() : boolean
+    + clear()
+  }
+  note left of Clipboard
+    Singleton implementation:\n
+    - Private constructor\n
+    - Static instance\n
+    - Public static getInstance()\n
+    Ensures only one instance exists.
+  end note
+
+  class CopyShapeCommand <<Client>> {
+    - shapeToCopy : Model.Shape
+    + CopyShapeCommand(shape: Model.Shape)
+    + execute()
+  }
+  note top of CopyShapeCommand : Client uses `Clipboard.getInstance()` to copy shapes.
+
+  class PasteShapeCommand <<Client>> {
+    - drawing : Model.Drawing
+    + PasteShapeCommand(drawing: Model.Drawing)
+    + execute()
+  }
+  note top of PasteShapeCommand : Client uses `Clipboard.getInstance()` to paste shapes.
+
+  class GeoEngine <<Client>> {
+    + performCopyOperation(shape: Model.Shape)
+  }
+  note bottom of GeoEngine : Another potential client of Clipboard.
+
+  class Drawing <<Model Detail>> {
+    + addShape(s: Model.Shape)
+  }
+
+  CopyShapeCommand ..> Model.Shape : uses (to clone)
+  PasteShapeCommand ..> Model.Shape : uses (to clone)
+  PasteShapeCommand o--> Drawing : uses
+}
+
+' ====================== SINGLETON PATTERN INTERACTIONS ===================
+
+Infrastructure.CopyShapeCommand -[#blue,thickness=2]-> Infrastructure.Clipboard : calls {static} getInstance()
+Infrastructure.Clipboard -[#green,thickness=2]-> Infrastructure.Clipboard : returns singleton instance
+Infrastructure.CopyShapeCommand -[#orange,thickness=2]-> Infrastructure.Clipboard : calls set(clonedShape)
+
+Infrastructure.PasteShapeCommand -[#blue,thickness=2]-> Infrastructure.Clipboard : calls {static} getInstance()
+Infrastructure.PasteShapeCommand -[#orange,thickness=2]-> Infrastructure.Clipboard : calls get()
+@enduml

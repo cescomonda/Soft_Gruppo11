@@ -1,0 +1,424 @@
+title Class Diagram - Sprint 2 (Strict UML Compliance)
+
+skinparam style strictuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontName Arial
+skinparam stereotypeCBackgroundColor PaleGreen
+skinparam stereotypeIBackgroundColor LightSkyBlue
+skinparam packageStyle Rectangle
+
+' ===================== MODEL =====================
+package Model <<MVC Layer>> {
+
+  package geometry <<SubPackage>> {
+    class Point2D {
+      - x : double
+      - y : double
+      + Point2D(x: double, y: double)
+      + getX(): double
+      + getY(): double
+    }
+    class Vector2D {
+      - dx : double
+      - dy : double
+      + Vector2D(dx: double, dy: double)
+      + getDx(): double
+      + getDy(): double
+    }
+    class ColorData {
+      - r : int
+      - g : int
+      - b : int
+      - a : double
+      + ColorData(r: int, g: int, b: int, a: double)
+      + getR(): int
+      + getG(): int
+      + getB(): int
+      + getA(): double
+    }
+    class Rect {
+      - topLeft : Point2D
+      - width : double
+      - height : double
+      + Rect(topLeft: Point2D, width: double, height: double)
+      + getTopLeft(): Point2D
+      + getWidth(): double
+      + getHeight(): double
+      + getCenter(): Point2D
+    }
+  }
+
+  interface Observable <<Subject>> {
+    + attach(o : View.Observer)
+    + detach(o : View.Observer)
+    + notifyObservers(arg : Object)
+  }
+
+  interface Shape <<Product, Element, Prototype>> {
+    + getId() : java.util.UUID
+    + move(v : Model.geometry.Vector2D)
+    + resize(bounds : Model.geometry.Rect)
+    + setStrokeColor(c : Model.geometry.ColorData)
+    + getStrokeColor() : Model.geometry.ColorData
+    + setFillColor(c : Model.geometry.ColorData)
+    + getFillColor() : Model.geometry.ColorData
+    + contains(p : Model.geometry.Point2D) : boolean
+    + accept(v : View.ShapeVisitor)
+    + clone() : Shape
+    + getBounds() : Model.geometry.Rect
+    + setRotation(angle : double)
+    + getRotation() : double
+    + setText(text: String) ' No-op per default
+    + getText() : String ' null per default
+    + setFontSize(size: double) ' No-op per default
+    + getFontSize() : double ' 0 per default
+  }
+
+  class LineSegment <<ConcreteProduct, ConcreteElement, ConcretePrototype>> implements Shape {
+    - id: java.util.UUID
+    - startPoint: Model.geometry.Point2D
+    - endPoint: Model.geometry.Point2D
+    - strokeColor: Model.geometry.ColorData
+    - rotationAngle : double
+    + LineSegment(p1: Model.geometry.Point2D, p2: Model.geometry.Point2D, stroke: Model.geometry.ColorData)
+    ' Implementa i metodi di Shape
+  }
+  class RectangleShape <<ConcreteProduct, ConcreteElement, ConcretePrototype>> implements Shape {
+    - id: java.util.UUID
+    - bounds: Model.geometry.Rect
+    - strokeColor: Model.geometry.ColorData
+    - fillColor: Model.geometry.ColorData
+    - rotationAngle : double
+    + RectangleShape(bounds: Model.geometry.Rect, stroke: Model.geometry.ColorData, fill: Model.geometry.ColorData)
+    ' Implementa i metodi di Shape
+  }
+  class EllipseShape <<ConcreteProduct, ConcreteElement, ConcretePrototype>> implements Shape {
+    - id: java.util.UUID
+    - bounds: Model.geometry.Rect
+    - strokeColor: Model.geometry.ColorData
+    - fillColor: Model.geometry.ColorData
+    - rotationAngle : double
+    + EllipseShape(bounds: Model.geometry.Rect, stroke: Model.geometry.ColorData, fill: Model.geometry.ColorData)
+    ' Implementa i metodi di Shape
+  }
+  class PolygonShape <<ConcreteProduct, ConcreteElement, ConcretePrototype>> implements Shape {
+    - id: java.util.UUID
+    - vertices: List<Point2D>
+    - strokeColor: Model.geometry.ColorData
+    - fillColor: Model.geometry.ColorData
+    - rotationAngle : double
+    + PolygonShape(vertices: List<Point2D>, stroke: Model.geometry.ColorData, fill: Model.geometry.ColorData)
+    ' Implementa i metodi di Shape
+  }
+  class TextShape <<ConcreteProduct, ConcreteElement, ConcretePrototype>> implements Shape {
+    - id: java.util.UUID
+    - text: String
+    - position: Model.geometry.Point2D ' Angolo in alto a sx del bounding box del testo
+    - fontSize: double
+    - fontName: String
+    - textColor: Model.geometry.ColorData
+    - rotationAngle : double
+    + TextShape(text: String, position: Point2D, fontSize: double, fontName: String, color: Model.geometry.ColorData)
+    ' Implementa i metodi di Shape. getStrokeColor() e setStrokeColor() si riferiscono a textColor.
+    ' getFillColor() e setFillColor() potrebbero non essere applicabili o riferirsi a uno sfondo.
+  }
+
+  class Drawing <<ConcreteSubject, Receiver>> implements Observable {
+    - shapes : List<Shape> ' L'ordine in questa lista definisce l'ordine Z
+    - observers : List<View.Observer>
+    + Drawing()
+    + addShape(s : Shape)
+    + removeShape(s : Shape)
+    + clear()
+    + getShapesInZOrder() : List<Shape> ' Restituisce una copia per il rendering
+    + attach(o : View.Observer)
+    + detach(o : View.Observer)
+    + notifyObservers(arg : Object)
+    + findShapeById(id: java.util.UUID) : Shape
+    + bringToFront(shape: Shape)
+    + sendToBack(shape: Shape)
+    + getShapeIndex(shape: Shape) : int
+    + addShapeAtIndex(shape: Shape, index: int)
+  }
+  Drawing o-- "*" Shape : contains
+  Drawing *-- "observers" View.Observer : notifies >
+}
+
+' ===================== VIEW =====================
+package View <<MVC Layer>> {
+  interface Observer <<Observer>> {
+    + update(source : Model.Observable, arg : Object)
+  }
+
+  class DrawingView implements Observer {
+    - controller : Controller.GeoEngine
+    - canvasPanel : CanvasPanel
+    + DrawingView(controller : Controller.GeoEngine, canvasPanel : CanvasPanel)
+    + update(source : Model.Observable, arg : Object)
+    + render()
+    + getUserInputForPath(saveDialog : boolean) : String
+    + showError(message : String)
+    + promptForText(prompt: String) : String ' Per US24
+    + getCurrentZoomFactor() : double ' Per aggiornare UI
+    + getScrollOffsetX() : double
+    + getScrollOffsetY() : double
+  }
+  DrawingView --> CanvasPanel : uses >
+
+  class CanvasPanel { ' In JavaFX, questo potrebbe essere un javafx.scene.canvas.Canvas gestito dalla DrawingView
+    - gc : javafx.scene.canvas.GraphicsContext
+    - renderer : ShapeVisitor
+    - zoomFactor : double = 1.0
+    - offsetX : double = 0.0
+    - offsetY : double = 0.0
+    - gridEnabled : boolean = false
+    - gridSize : double = 20.0
+    + CanvasPanel(gc : javafx.scene.canvas.GraphicsContext)
+    + clear()
+    + drawShapes(shapes : Iterable<Model.Shape>) ' Applica zoom/pan al gc prima di disegnare
+    + setTransform(zoom: double, offsetX: double, offsetY: double)
+    + setGrid(enabled: boolean, size: double)
+    + renderGrid(gc : javafx.scene.canvas.GraphicsContext)
+  }
+  CanvasPanel o-- ShapeVisitor : uses >
+
+  interface ShapeVisitor <<Visitor>> {
+    + visit(r : Model.RectangleShape)
+    + visit(e : Model.EllipseShape)
+    + visit(l : Model.LineSegment)
+    + visit(p : Model.PolygonShape)
+    + visit(t : Model.TextShape)
+  }
+  class JavaFXShapeRenderer <<ConcreteVisitor>> implements ShapeVisitor {
+    - gc : javafx.scene.canvas.GraphicsContext
+    + JavaFXShapeRenderer(gc : javafx.scene.canvas.GraphicsContext)
+    + visit(r : Model.RectangleShape) ' Ora considera shape.getRotation()
+    + visit(e : Model.EllipseShape) ' Ora considera shape.getRotation()
+    + visit(l : Model.LineSegment) ' Ora considera shape.getRotation()
+    + visit(p : Model.PolygonShape) ' Ora considera shape.getRotation()
+    + visit(t : Model.TextShape) ' Ora considera shape.getRotation()
+  }
+}
+
+' =================== CONTROLLER ==================
+package Controller <<MVC Layer>> {
+  interface ToolState <<State>> {
+    + onMousePressed(engine : GeoEngine, p : Model.geometry.Point2D)
+    + onMouseDragged(engine : GeoEngine, p : Model.geometry.Point2D)
+    + onMouseReleased(engine : GeoEngine, p : Model.geometry.Point2D)
+    + getName() : String
+    + activate(engine : GeoEngine)
+    + deactivate(engine : GeoEngine)
+  }
+  class LineState <<ConcreteState>> implements ToolState { /* ... */ }
+  class RectangleState <<ConcreteState>> implements ToolState { /* ... */ }
+  class EllipseState <<ConcreteState>> implements ToolState { /* ... */ }
+  class SelectState <<ConcreteState>> implements ToolState { /* ... */ }
+  class PolygonState <<ConcreteState>> implements ToolState {
+    - currentPoints : List<Point2D>
+    - isDrawing : boolean
+    + getName() : String
+    + onMousePressed(engine : GeoEngine, p : Model.geometry.Point2D)
+    + onMouseDragged(engine : GeoEngine, p : Model.geometry.Point2D) ' Potrebbe disegnare anteprima
+    + onMouseReleased(engine : GeoEngine, p : Model.geometry.Point2D) ' Aggiunge punto, se ultimo è vicino al primo, chiude
+    + activate(engine : GeoEngine)
+    + deactivate(engine : GeoEngine)
+  }
+  class TextState <<ConcreteState>> implements ToolState {
+    + getName() : String
+    + onMousePressed(engine : GeoEngine, p : Model.geometry.Point2D) ' Posiziona testo, chiede input
+    + onMouseDragged(engine : GeoEngine, p : Model.geometry.Point2D) ' No-op
+    + onMouseReleased(engine : GeoEngine, p : Model.geometry.Point2D) ' No-op
+    + activate(engine : GeoEngine)
+    + deactivate(engine : GeoEngine)
+  }
+
+  class GeoEngine <<Context, Client (Command)>> {
+    - currentState : ToolState
+    - drawing : Model.Drawing
+    - cmdMgr : Infrastructure.CommandManager
+    - persistenceController : Persistence.PersistenceController
+    - clipboard : Infrastructure.Clipboard
+    - shapeFactory : Factory.ShapeFactory
+    - view : View.DrawingView
+    - selectedShape : Model.Shape ' Potrebbe essere gestito da SelectState
+    - currentZoom : double = 1.0
+    - scrollOffsetX : double = 0.0
+    - scrollOffsetY : double = 0.0
+    - gridEnabled : boolean = false
+    - gridSize : double = 20.0
+
+    + GeoEngine(drawing:Model.Drawing, cmdMgr:Infrastructure.CommandManager, persistence:Persistence.PersistenceController, clipboard:Infrastructure.Clipboard, factory:Factory.ShapeFactory)
+    + setView(view : View.DrawingView)
+    + setState(stateName : String) ' Supporta "Polygon", "Text"
+    + getCurrentToolName() : String
+    + onMousePressed(p : Model.geometry.Point2D)
+    + onMouseDragged(p : Model.geometry.Point2D)
+    + onMouseReleased(p : Model.geometry.Point2D)
+    + addShapeToDrawing(shape : Model.Shape)
+    + removeSelectedShapeFromDrawing()
+    + moveSelectedShape(delta : Model.geometry.Vector2D)
+    + resizeSelectedShape(newBounds : Model.geometry.Rect)
+    + changeSelectedShapeStrokeColor(color : Model.geometry.ColorData)
+    + changeSelectedShapeFillColor(color : Model.geometry.ColorData)
+    + cutSelectedShape()
+    + copySelectedShape()
+    + pasteShape() ' Usa un offset di default o calcolato
+    + undoLastCommand()
+    + redoLastCommand()
+    + canUndo() : boolean
+    + canRedo() : boolean
+    + saveDrawing(path : String)
+    + loadDrawing(path : String)
+    + bringSelectedShapeToFront()
+    + sendSelectedShapeToBack()
+    + rotateSelectedShape(angleDegrees : double)
+    + changeSelectedTextSize(newSize : double) ' Solo se selectedShape è TextShape
+    + setZoomLevel(level : double)
+    + zoomIn()
+    + zoomOut()
+    + setScrollOffset(offsetX : double, offsetY : double)
+    + scroll(deltaX : double, deltaY : double)
+    + toggleGrid()
+    + setGridSize(size : double)
+    + getGridSize() : double
+    + isGridEnabled() : boolean
+    + getCurrentZoom() : double
+    + getScrollOffsetX() : double
+    + getScrollOffsetY() : double
+    + getDrawing() : Model.Drawing
+    + getClipboard() : Infrastructure.Clipboard
+    + getShapeFactory() : Factory.ShapeFactory
+    + getCommandManager() : Infrastructure.CommandManager
+    + getSelectedShape() : Model.Shape
+    + setSelectedShape(shape : Model.Shape)
+  }
+  GeoEngine o--> ToolState : "currentState"
+  GeoEngine o--> Model.Drawing
+  GeoEngine o--> Infrastructure.CommandManager
+  GeoEngine o--> Persistence.PersistenceController
+  GeoEngine o--> Infrastructure.Clipboard
+  GeoEngine o--> Factory.ShapeFactory
+  GeoEngine .> View.DrawingView
+}
+
+' =================== PERSISTENCE =================
+package Persistence {
+  interface IDrawingSerializer {
+    + save(d : Model.Drawing, path : String)
+    + load(path : String) : Model.Drawing
+  }
+  class DrawingSerializer implements IDrawingSerializer {
+    + save(d : Model.Drawing, path : String) ' Serializzerà anche tipo, rotazione, testo, etc.
+    + load(path : String) : Model.Drawing
+  }
+  class PersistenceController {
+    - serializer : IDrawingSerializer
+    + PersistenceController(serializer: IDrawingSerializer)
+    + saveDrawing(d : Model.Drawing, path : String)
+    + loadDrawing(path : String) : Model.Drawing
+  }
+  PersistenceController o-- IDrawingSerializer
+}
+
+' ================== INFRASTRUCTURE ===============
+package Infrastructure {
+  interface Command <<Command>> {
+    + execute()
+    + undo()
+  }
+  abstract class AbstractDrawingCommand implements Command {
+    # receiverDrawing : Model.Drawing
+    + AbstractDrawingCommand(receiver: Model.Drawing)
+  }
+  abstract class AbstractShapeCommand implements Command {
+    # receiverShape : Model.Shape
+    + AbstractShapeCommand(receiver: Model.Shape)
+  }
+
+  class AddShapeCommand extends AbstractDrawingCommand { /* ... */ }
+  class DeleteShapeCommand extends AbstractDrawingCommand { /* ... */ }
+  class MoveShapeCommand extends AbstractShapeCommand { /* ... */ }
+  class ResizeShapeCommand extends AbstractShapeCommand { /* ... */ }
+  class ChangeStrokeColorCommand extends AbstractShapeCommand { /* ... */ }
+  class ChangeFillColorCommand extends AbstractShapeCommand { /* ... */ }
+  class CutShapeCommand extends AbstractShapeCommand { /* ... */ }
+  class CopyShapeCommand extends AbstractShapeCommand { /* ... */ }
+
+  class PasteShapeCommand extends AbstractDrawingCommand {
+    # clipboard : Clipboard
+    - pastedShapeCopy : Model.Shape ' La copia effettiva incollata
+    - defaultOffset : Model.geometry.Vector2D
+    + PasteShapeCommand(drawing : Model.Drawing, clipboard : Clipboard)
+    + execute() ' Clona da clipboard, applica offset, aggiunge a drawing
+    + undo() ' Rimuove pastedShapeCopy da drawing
+  }
+
+  class BringToFrontCommand extends AbstractDrawingCommand {
+    - shapeToModify : Model.Shape
+    - originalIndex : int
+    + BringToFrontCommand(drawing : Model.Drawing, shape : Model.Shape)
+    + execute() ' Chiama drawing.bringToFront(shapeToModify)
+    + undo() ' Rimuove e riaggiunge shapeToModify all'originalIndex
+  }
+  class SendToBackCommand extends AbstractDrawingCommand {
+    - shapeToModify : Model.Shape
+    - originalIndex : int
+    + SendToBackCommand(drawing : Model.Drawing, shape : Model.Shape)
+    + execute() ' Chiama drawing.sendToBack(shapeToModify)
+    + undo()
+  }
+  class RotateShapeCommand extends AbstractShapeCommand {
+    - angleDelta : double ' o angolo assoluto a seconda dell'implementazione UI
+    - oldAngle : double
+    + RotateShapeCommand(shape : Model.Shape, angleDelta : double)
+    + execute() ' shape.setRotation(shape.getRotation() + angleDelta)
+    + undo() ' shape.setRotation(oldAngle)
+  }
+  class ChangeTextSizeCommand extends AbstractShapeCommand {
+    - newSize : double
+    - oldSize : double
+    + ChangeTextSizeCommand(textShape : Model.TextShape, newSize : double) ' Assicura che sia un TextShape
+    + execute() ' textShape.setFontSize(newSize)
+    + undo() ' textShape.setFontSize(oldSize)
+  }
+
+  CutShapeCommand ..> Clipboard : uses
+  CutShapeCommand ..> Model.Drawing : uses
+  CopyShapeCommand ..> Clipboard : uses
+  PasteShapeCommand ..> Clipboard : uses
+
+  class CommandManager <<Invoker>> {
+    - undoStack : java.util.Stack<Command>
+    - redoStack : java.util.Stack<Command>
+    + CommandManager()
+    + executeCommand(cmd : Command)
+    + undo()
+    + redo()
+    + canUndo() : boolean
+    + canRedo() : boolean
+  }
+  CommandManager o-- "*" Command : historyOf >
+
+  class Clipboard <<Singleton>> {
+    - {static} instance : Clipboard
+    - content : Model.Shape ' Contiene un prototipo della forma
+    - Clipboard()
+    + {static} getInstance() : Clipboard
+    + set(shape : Model.Shape) ' Clona la forma per metterla negli appunti
+    + get() : Model.Shape ' Restituisce il prototipo (o una sua copia)
+    + isEmpty() : boolean
+    + clear()
+  }
+}
+
+' ====================== FACTORY ===================
+package Factory {
+  class ShapeFactory <<Creator>> {
+    + createShape(toolName : String, p1 : Model.geometry.Point2D, p2 : Model.geometry.Point2D, strokeColor : Model.geometry.ColorData, fillColor : Model.geometry.ColorData, optionalParams: Map<String, Object>) : Model.Shape
+    ' Per Polygon, optionalParams potrebbe contenere "vertices":List<Point2D>.
+    ' Per Text, optionalParams potrebbe contenere "text":"some text", "fontSize":12.0.
+    ' p1 e p2 sono usati per la creazione interattiva, la forma finale può dipendere da optionalParams.
+  }
+}
+@enduml

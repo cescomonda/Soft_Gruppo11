@@ -1,0 +1,136 @@
+@startuml
+title Controller and State Pattern Focus
+
+skinparam style strictuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontName Arial
+skinparam stereotypeCBackgroundColor PaleGreen
+skinparam stereotypeIBackgroundColor LightSkyBlue
+skinparam packageStyle Rectangle
+
+' ===================== MODEL (Potentially used by States via GeoEngine) =====================
+package Model <<MVC Layer - Used by Controller>> {
+  interface Shape {
+    ' Minimal methods relevant if states create/manipulate shapes
+  }
+  class Drawing {
+    '+ addShape(s : Shape)'
+    '+ removeShape(s : Shape)'
+  }
+  note left of Drawing : States might interact with the Model\n indirectly through the GeoEngine (Context).
+  
+  package geometry <<Details>> {
+    class Point2D
+  }
+}
+
+' =================== CONTROLLER (State Pattern Implementation) ==================
+package Controller <<MVC Layer - State Pattern>> {
+
+  interface ToolState <<State>> {
+    + onMousePressed(engine: GeoEngine, p : Model.geometry.Point2D)
+    + onMouseDragged(engine: GeoEngine, p : Model.geometry.Point2D)
+    + onMouseReleased(engine: GeoEngine, p : Model.geometry.Point2D)
+    + getName() : String
+    + activate(engine: GeoEngine)
+    + deactivate(engine: GeoEngine)
+  }
+  note right of ToolState
+    Defines the interface for encapsulating
+    the behavior associated with a
+    particular state of the GeoEngine (Context).
+  end note
+
+  class GeoEngine <<Context>> {
+    - currentState : ToolState
+    - drawing : Model.Drawing
+    - shapeFactory : Factory.ShapeFactory
+    - cmdMgr : Infrastructure.CommandManager
+
+    + GeoEngine(drawing: Model.Drawing, factory: Factory.ShapeFactory, cmdMgr: Infrastructure.CommandManager)
+    + setState(newState : ToolState)
+    + changeTool(toolName: String)
+    + onMousePressed(p : Model.geometry.Point2D)
+    + onMouseDragged(p : Model.geometry.Point2D)
+    + onMouseReleased(p : Model.geometry.Point2D)
+    + getDrawing() : Model.Drawing
+    + getShapeFactory() : Factory.ShapeFactory
+    + getCommandManager() : Infrastructure.CommandManager
+    + createAndExecuteCommand(cmd: Infrastructure.Command)
+  }
+  note left of GeoEngine
+    The Context. Maintains an instance of a
+    ConcreteState subclass that defines the
+    current state. Delegates state-specific
+    requests to this instance.
+    Provides an interface for states to
+    access shared resources or change its state.
+  end note
+
+  class LineState <<ConcreteState>> implements ToolState {
+    - startPoint : Model.geometry.Point2D
+    + getName() : String
+    + onMousePressed(engine: GeoEngine, p : Model.geometry.Point2D)
+    + onMouseReleased(engine: GeoEngine, p : Model.geometry.Point2D)
+    + onMouseDragged(engine: GeoEngine, p : Model.geometry.Point2D)
+    + activate(engine: GeoEngine)
+    + deactivate(engine: GeoEngine)
+  }
+  note top of LineState : Handles logic for drawing lines.
+
+  class RectangleState <<ConcreteState>> implements ToolState {
+    + getName() : String
+    + onMousePressed(engine: GeoEngine, p : Model.geometry.Point2D)
+    + onMouseDragged(engine: GeoEngine, p : Model.geometry.Point2D)
+    + onMouseReleased(engine: GeoEngine, p : Model.geometry.Point2D)
+    + activate(engine: GeoEngine)
+    + deactivate(engine: GeoEngine)
+  }
+
+  class EllipseState <<ConcreteState>> implements ToolState {
+    + getName() : String
+    + onMousePressed(engine: GeoEngine, p : Model.geometry.Point2D)
+    + onMouseDragged(engine: GeoEngine, p : Model.geometry.Point2D)
+    + onMouseReleased(engine: GeoEngine, p : Model.geometry.Point2D)
+    + activate(engine: GeoEngine)
+    + deactivate(engine: GeoEngine)
+  }
+
+  class SelectState <<ConcreteState>> implements ToolState {
+    - selectedShape: Model.Shape
+    - dragStartPoint: Model.geometry.Point2D
+    + getName() : String
+    + onMousePressed(engine: GeoEngine, p : Model.geometry.Point2D)
+    + onMouseDragged(engine: GeoEngine, p : Model.geometry.Point2D)
+    + onMouseReleased(engine: GeoEngine, p : Model.geometry.Point2D)
+    + activate(engine: GeoEngine)
+    + deactivate(engine: GeoEngine)
+  }
+  note top of SelectState : Handles logic for selecting and interacting with existing shapes.
+}
+
+' =================== Dependencies (Dummy Classes) ===================
+package Factory <<Details>> {
+  class ShapeFactory
+}
+
+package Infrastructure <<Details>> {
+  class CommandManager
+  class Command
+}
+
+' ====================== STATE PATTERN INTERACTIONS ===================
+Controller.GeoEngine -[#orange,thickness=2]-> Controller.ToolState : "(currentState).onMousePressed()"
+Controller.LineState -[#green,thickness=2]-> Controller.GeoEngine : "(uses context methods)"
+Controller.GeoEngine -> Controller.ToolState : "(sets new currentState via changeTool())"
+
+Controller.GeoEngine o--> Controller.ToolState : "currentState"
+Controller.GeoEngine o--> Model.Drawing : uses
+Controller.GeoEngine o--> Factory.ShapeFactory : uses
+Controller.GeoEngine o--> Infrastructure.CommandManager : uses
+
+Controller.LineState ..> Model.geometry.Point2D : uses
+Controller.SelectState ..> Model.Shape : uses
+Controller.SelectState ..> Model.geometry.Point2D : uses
+
+@enduml

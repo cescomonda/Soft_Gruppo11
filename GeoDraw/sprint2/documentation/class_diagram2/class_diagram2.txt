@@ -1,0 +1,444 @@
+@startuml
+title Overall Class Diagram (Strict UML Compliance)
+
+skinparam style strictuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontName Arial
+skinparam stereotypeCBackgroundColor PaleGreen
+skinparam stereotypeIBackgroundColor LightSkyBlue
+skinparam packageStyle Rectangle
+
+' ===================== MODEL =====================
+package Model <<MVC Layer>> {
+
+  package geometry <<SubPackage>> {
+    class Point2D {
+      - x : double
+      - y : double
+      + Point2D(x: double, y: double)
+      + getX(): double
+      + getY(): double
+    }
+    class Vector2D {
+      - dx : double
+      - dy : double
+      + Vector2D(dx: double, dy: double)
+      + getDx(): double
+      + getDy(): double
+    }
+    class ColorData {
+      - r : int
+      - g : int
+      - b : int
+      - a : double
+      + ColorData(r: int, g: int, b: int, a: double)
+      + getR(): int
+      + getG(): int
+      + getB(): int
+      + getA(): double
+    }
+    class Rect {
+      - topLeft : Point2D
+      - width : double
+      - height : double
+      + Rect(topLeft: Point2D, width: double, height: double)
+      + getTopLeft(): Point2D
+      + getWidth(): double
+      + getHeight(): double
+    }
+  }
+
+  interface Observable <<Subject>> {
+    + attach(o : View.Observer)
+    + detach(o : View.Observer)
+    + notifyObservers(arg : Object)
+  }
+
+  interface Shape <<Product, Element, Prototype>> {
+    + getId() : java.util.UUID
+    + move(v : Model.geometry.Vector2D)
+    + resize(bounds : Model.geometry.Rect)
+    + setStrokeColor(c : Model.geometry.ColorData)
+    + getStrokeColor() : Model.geometry.ColorData
+    + setFillColor(c : Model.geometry.ColorData)
+    + getFillColor() : Model.geometry.ColorData
+    + contains(p : Model.geometry.Point2D) : boolean
+    + accept(v : View.ShapeVisitor)
+    + clone() : Shape
+    + getBounds() : Model.geometry.Rect
+  }
+
+  class LineSegment <<ConcreteProduct, ConcreteElement, ConcretePrototype>> implements Shape {
+    - id: java.util.UUID
+    - startPoint: Model.geometry.Point2D
+    - endPoint: Model.geometry.Point2D
+    - strokeColor: Model.geometry.ColorData
+    + LineSegment(p1: Model.geometry.Point2D, p2: Model.geometry.Point2D, stroke: Model.geometry.ColorData)
+    ' Implementa i metodi di Shape
+    + getId() : java.util.UUID
+    + move(v : Model.geometry.Vector2D)
+    + resize(bounds : Model.geometry.Rect)
+    + setStrokeColor(c : Model.geometry.ColorData)
+    + getStrokeColor() : Model.geometry.ColorData
+    + setFillColor(c : Model.geometry.ColorData) ' No-op for Line
+    + getFillColor() : Model.geometry.ColorData ' Returns null or transparent
+    + contains(p : Model.geometry.Point2D) : boolean
+    + accept(v : View.ShapeVisitor)
+    + clone() : Shape
+    + getBounds() : Model.geometry.Rect
+  }
+  class RectangleShape <<ConcreteProduct, ConcreteElement, ConcretePrototype>> implements Shape {
+    - id: java.util.UUID
+    - bounds: Model.geometry.Rect
+    - strokeColor: Model.geometry.ColorData
+    - fillColor: Model.geometry.ColorData
+    + RectangleShape(bounds: Model.geometry.Rect, stroke: Model.geometry.ColorData, fill: Model.geometry.ColorData)
+    ' Implementa i metodi di Shape
+    + getId() : java.util.UUID
+    + move(v : Model.geometry.Vector2D)
+    + resize(bounds : Model.geometry.Rect)
+    + setStrokeColor(c : Model.geometry.ColorData)
+    + getStrokeColor() : Model.geometry.ColorData
+    + setFillColor(c : Model.geometry.ColorData)
+    + getFillColor() : Model.geometry.ColorData
+    + contains(p : Model.geometry.Point2D) : boolean
+    + accept(v : View.ShapeVisitor)
+    + clone() : Shape
+    + getBounds() : Model.geometry.Rect
+  }
+  class EllipseShape <<ConcreteProduct, ConcreteElement, ConcretePrototype>> implements Shape {
+    - id: java.util.UUID
+    - bounds: Model.geometry.Rect
+    - strokeColor: Model.geometry.ColorData
+    - fillColor: Model.geometry.ColorData
+    + EllipseShape(bounds: Model.geometry.Rect, stroke: Model.geometry.ColorData, fill: Model.geometry.ColorData)
+    ' Implementa i metodi di Shape
+    + getId() : java.util.UUID
+    + move(v : Model.geometry.Vector2D)
+    + resize(bounds : Model.geometry.Rect)
+    + setStrokeColor(c : Model.geometry.ColorData)
+    + getStrokeColor() : Model.geometry.ColorData
+    + setFillColor(c : Model.geometry.ColorData)
+    + getFillColor() : Model.geometry.ColorData
+    + contains(p : Model.geometry.Point2D) : boolean
+    + accept(v : View.ShapeVisitor)
+    + clone() : Shape
+    + getBounds() : Model.geometry.Rect
+  }
+
+  class Drawing <<ConcreteSubject, Receiver>> implements Observable {
+    - shapes : List<Shape>
+    - observers : List<View.Observer>
+    + Drawing()
+    + addShape(s : Shape)
+    + removeShape(s : Shape)
+    + clear()
+    + getShapes() : Iterable<Shape>
+    + attach(o : View.Observer)
+    + detach(o : View.Observer)
+    + notifyObservers(arg : Object)
+    + findShapeById(id: java.util.UUID) : Shape
+  }
+  Drawing o-- "*" Shape : contains
+  Drawing *-- "observers" View.Observer : notifies >
+}
+
+' ===================== VIEW =====================
+package View <<MVC Layer>> {
+  interface Observer <<Observer>> {
+    + update(source : Model.Observable, arg : Object)
+  }
+
+  class DrawingView implements Observer {
+    - controller : Controller.GeoEngine
+    - canvasPanel : CanvasPanel
+    + DrawingView(controller : Controller.GeoEngine, canvasPanel : CanvasPanel)
+    + update(source : Model.Observable, arg : Object)
+    + render()
+    + getUserInputForPath(saveDialog : boolean) : String
+    + showError(message : String)
+  }
+  DrawingView --> CanvasPanel : uses >
+
+  class CanvasPanel {
+    - gc : javafx.scene.canvas.GraphicsContext
+    - renderer : ShapeVisitor
+    + CanvasPanel(gc : javafx.scene.canvas.GraphicsContext)
+    + clear()
+    + drawShapes(shapes : Iterable<Model.Shape>)
+  }
+  CanvasPanel o-- ShapeVisitor : uses >
+
+  interface ShapeVisitor <<Visitor>> {
+    + visit(r : Model.RectangleShape)
+    + visit(e : Model.EllipseShape)
+    + visit(l : Model.LineSegment)
+  }
+  class JavaFXShapeRenderer <<ConcreteVisitor>> implements ShapeVisitor {
+    - gc : javafx.scene.canvas.GraphicsContext
+    + JavaFXShapeRenderer(gc : javafx.scene.canvas.GraphicsContext)
+    + visit(r : Model.RectangleShape)
+    + visit(e : Model.EllipseShape)
+    + visit(l : Model.LineSegment)
+  }
+}
+
+' =================== CONTROLLER ==================
+package Controller <<MVC Layer>> {
+  interface ToolState <<State>> {
+    + onMousePressed(engine : GeoEngine, p : Model.geometry.Point2D)
+    + onMouseDragged(engine : GeoEngine, p : Model.geometry.Point2D)
+    + onMouseReleased(engine : GeoEngine, p : Model.geometry.Point2D)
+    + getName() : String
+    + activate(engine : GeoEngine)
+    + deactivate(engine : GeoEngine)
+  }
+  class LineState <<ConcreteState>> implements ToolState {
+    + getName() : String
+    + onMousePressed(engine : GeoEngine, p : Model.geometry.Point2D)
+    + onMouseDragged(engine : GeoEngine, p : Model.geometry.Point2D)
+    + onMouseReleased(engine : GeoEngine, p : Model.geometry.Point2D)
+    + activate(engine : GeoEngine)
+    + deactivate(engine : GeoEngine)
+  }
+  class RectangleState <<ConcreteState>> implements ToolState {
+    + getName() : String
+    + onMousePressed(engine : GeoEngine, p : Model.geometry.Point2D)
+    + onMouseDragged(engine : GeoEngine, p : Model.geometry.Point2D)
+    + onMouseReleased(engine : GeoEngine, p : Model.geometry.Point2D)
+    + activate(engine : GeoEngine)
+    + deactivate(engine : GeoEngine)
+  }
+  class EllipseState <<ConcreteState>> implements ToolState {
+    + getName() : String
+    + onMousePressed(engine : GeoEngine, p : Model.geometry.Point2D)
+    + onMouseDragged(engine : GeoEngine, p : Model.geometry.Point2D)
+    + onMouseReleased(engine : GeoEngine, p : Model.geometry.Point2D)
+    + activate(engine : GeoEngine)
+    + deactivate(engine : GeoEngine)
+  }
+  class SelectState <<ConcreteState>> implements ToolState {
+    - selectedShape : Model.Shape
+    + getName() : String
+    + onMousePressed(engine : GeoEngine, p : Model.geometry.Point2D)
+    + onMouseDragged(engine : GeoEngine, p : Model.geometry.Point2D)
+    + onMouseReleased(engine : GeoEngine, p : Model.geometry.Point2D)
+    + activate(engine : GeoEngine)
+    + deactivate(engine : GeoEngine)
+  }
+
+  class GeoEngine <<Context, Client (Command)>> {
+    - currentState : ToolState
+    - drawing : Model.Drawing
+    - cmdMgr : Infrastructure.CommandManager
+    - persistenceController : Persistence.PersistenceController
+    - clipboard : Infrastructure.Clipboard
+    - shapeFactory : Factory.ShapeFactory
+    - view : View.DrawingView
+
+    + GeoEngine(drawing:Model.Drawing, cmdMgr:Infrastructure.CommandManager, persistence:Persistence.PersistenceController, clipboard:Infrastructure.Clipboard, factory:Factory.ShapeFactory)
+    + setView(view : View.DrawingView)
+    + setState(stateName : String)
+    + getCurrentToolName() : String
+    + onMousePressed(p : Model.geometry.Point2D)
+    + onMouseDragged(p : Model.geometry.Point2D)
+    + onMouseReleased(p : Model.geometry.Point2D)
+    + addShapeToDrawing(shape : Model.Shape)
+    + removeSelectedShapeFromDrawing()
+    + moveSelectedShape(delta : Model.geometry.Vector2D)
+    + resizeSelectedShape(newBounds : Model.geometry.Rect)
+    + changeSelectedShapeStrokeColor(color : Model.geometry.ColorData)
+    + changeSelectedShapeFillColor(color : Model.geometry.ColorData)
+    + cutSelectedShape()
+    + copySelectedShape()
+    + pasteShape(offset : Model.geometry.Vector2D)
+    + undoLastCommand()
+    + redoLastCommand()
+    + canUndo() : boolean
+    + canRedo() : boolean
+    + saveDrawing(path : String)
+    + loadDrawing(path : String)
+    + getDrawing() : Model.Drawing
+    + getClipboard() : Infrastructure.Clipboard
+    + getShapeFactory() : Factory.ShapeFactory
+    + getCommandManager() : Infrastructure.CommandManager
+    + getSelectedShape() : Model.Shape
+    + setSelectedShape(shape : Model.Shape)
+  }
+  GeoEngine o--> ToolState : "currentState"
+  GeoEngine o--> Model.Drawing
+  GeoEngine o--> Infrastructure.CommandManager
+  GeoEngine o--> Persistence.PersistenceController
+  GeoEngine o--> Infrastructure.Clipboard
+  GeoEngine o--> Factory.ShapeFactory
+  GeoEngine .> View.DrawingView
+}
+
+' =================== PERSISTENCE =================
+package Persistence {
+  interface IDrawingSerializer {
+    + save(d : Model.Drawing, path : String)
+    + load(path : String) : Model.Drawing
+  }
+  class DrawingSerializer implements IDrawingSerializer {
+    + save(d : Model.Drawing, path : String)
+    + load(path : String) : Model.Drawing
+  }
+  class PersistenceController {
+    - serializer : IDrawingSerializer
+    + PersistenceController(serializer: IDrawingSerializer)
+    + saveDrawing(d : Model.Drawing, path : String)
+    + loadDrawing(path : String) : Model.Drawing
+  }
+  PersistenceController o-- IDrawingSerializer
+}
+
+' ================== INFRASTRUCTURE ===============
+package Infrastructure {
+  interface Command <<Command>> {
+    + execute()
+    + undo()
+  }
+  abstract class AbstractDrawingCommand implements Command {
+    # receiverDrawing : Model.Drawing
+    + AbstractDrawingCommand(receiver: Model.Drawing)
+  }
+  abstract class AbstractShapeCommand implements Command {
+    # receiverShape : Model.Shape
+    + AbstractShapeCommand(receiver: Model.Shape)
+  }
+
+  class AddShapeCommand extends AbstractDrawingCommand {
+    - shapeToAdd : Model.Shape
+    + AddShapeCommand(drawing : Model.Drawing, shape : Model.Shape)
+    + execute()
+    + undo()
+  }
+  class DeleteShapeCommand extends AbstractDrawingCommand {
+    - shapeToRemove : Model.Shape
+    - originalIndex : int
+    + DeleteShapeCommand(drawing : Model.Drawing, shape : Model.Shape)
+    + execute()
+    + undo()
+  }
+  class MoveShapeCommand extends AbstractShapeCommand {
+    - moveVector : Model.geometry.Vector2D
+    + MoveShapeCommand(shape : Model.Shape, vector : Model.geometry.Vector2D)
+    + execute()
+    + undo()
+  }
+  class ResizeShapeCommand extends AbstractShapeCommand {
+    - newBounds : Model.geometry.Rect
+    - oldBounds : Model.geometry.Rect
+    + ResizeShapeCommand(shape : Model.Shape, newBounds : Model.geometry.Rect)
+    + execute()
+    + undo()
+  }
+  class ChangeStrokeColorCommand extends AbstractShapeCommand {
+    - newColor : Model.geometry.ColorData
+    - oldColor : Model.geometry.ColorData
+    + ChangeStrokeColorCommand(shape : Model.Shape, newColor : Model.geometry.ColorData)
+    + execute()
+    + undo()
+  }
+  class ChangeFillColorCommand extends AbstractShapeCommand {
+    - newColor : Model.geometry.ColorData
+    - oldColor : Model.geometry.ColorData
+    + ChangeFillColorCommand(shape : Model.Shape, newColor : Model.geometry.ColorData)
+    + execute()
+    + undo()
+  }
+  class CutShapeCommand extends AbstractShapeCommand {
+    # clipboard : Clipboard
+    # drawing : Model.Drawing
+    - cutShape : Model.Shape
+    - originalIndex : int
+    + CutShapeCommand(shape : Model.Shape, drawing: Model.Drawing, clipboard : Clipboard)
+    + execute()
+    + undo()
+  }
+  class CopyShapeCommand extends AbstractShapeCommand {
+    # clipboard : Clipboard
+    + CopyShapeCommand(shape : Model.Shape, clipboard : Clipboard)
+    + execute()
+    + undo()
+  }
+  class PasteShapeCommand extends AbstractDrawingCommand {
+    # clipboard : Clipboard
+    - pastedShapeInstance : Model.Shape
+    - pasteOffset : Model.geometry.Vector2D
+    + PasteShapeCommand(drawing : Model.Drawing, clipboard : Clipboard, offset: Model.geometry.Vector2D)
+    + execute()
+    + undo()
+  }
+
+  CutShapeCommand ..> Clipboard : uses
+  CutShapeCommand ..> Model.Drawing : uses
+  CopyShapeCommand ..> Clipboard : uses
+  PasteShapeCommand ..> Clipboard : uses
+
+  class CommandManager <<Invoker>> {
+    - undoStack : java.util.Stack<Command>
+    - redoStack : java.util.Stack<Command>
+    + CommandManager()
+    + executeCommand(cmd : Command)
+    + undo()
+    + redo()
+    + canUndo() : boolean
+    + canRedo() : boolean
+  }
+  CommandManager o-- "*" Command : historyOf >
+
+  class Clipboard <<Singleton>> {
+    - {static} instance : Clipboard
+    - content : Model.Shape
+    - Clipboard()
+    + {static} getInstance() : Clipboard
+    + set(shape : Model.Shape)
+    + get() : Model.Shape
+    + isEmpty() : boolean
+    + clear()
+  }
+}
+
+' ====================== FACTORY ===================
+package Factory {
+  class ShapeFactory <<Creator>> {
+    + createShape(toolName : String, p1 : Model.geometry.Point2D, p2 : Model.geometry.Point2D, strokeColor : Model.geometry.ColorData, fillColor : Model.geometry.ColorData) : Model.Shape
+  }
+}
+
+' ====================== KEY RELATIONSHIPS BETWEEN MAJOR COMPONENTS ===================
+
+' MVC Interactions
+View.DrawingView ..> Controller.GeoEngine : forwardsUserInput >
+Controller.GeoEngine ..> Model.Drawing : manipulates >
+Model.Drawing ..> View.DrawingView : notifies (Observer)
+
+' Visitor
+Model.Shape ..> View.ShapeVisitor : accepts <
+View.CanvasPanel ..> View.ShapeVisitor : uses <
+
+' State
+Controller.GeoEngine --> Controller.ToolState : delegatesTo <
+Controller.ToolState ..> Controller.GeoEngine : (callback to context)
+
+' Command
+Controller.GeoEngine ..> Infrastructure.Command : creates >
+Infrastructure.CommandManager ..> Infrastructure.Command : executes >
+Infrastructure.AbstractDrawingCommand ..> Model.Drawing : (receiver)
+Infrastructure.AbstractShapeCommand   ..> Model.Shape : (receiver)
+
+' Factory Method
+Controller.GeoEngine ..> Factory.ShapeFactory : uses >
+Factory.ShapeFactory ..> Model.Shape : creates <
+
+' Prototype (via Commands)
+Infrastructure.CopyShapeCommand ..> Model.Shape : clones <
+Infrastructure.PasteShapeCommand ..> Model.Shape : (cloned from clipboard) <
+
+' Singleton (Clipboard usage)
+Infrastructure.CopyShapeCommand ..> Infrastructure.Clipboard : uses
+Controller.GeoEngine ..> Infrastructure.Clipboard : uses
+
+@enduml

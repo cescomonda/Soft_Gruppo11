@@ -1,0 +1,108 @@
+@startuml
+title View and Visitor Pattern Focus (for Shape Rendering)
+
+skinparam style strictuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontName Arial
+skinparam stereotypeCBackgroundColor PaleGreen
+skinparam stereotypeIBackgroundColor LightSkyBlue
+skinparam packageStyle Rectangle
+
+' ===================== MODEL (Elements to be Visited) =====================
+package Model <<Elements>> {
+
+  interface Shape <<Element>> {
+    + accept(v : View.ShapeVisitor)
+    + getId() : java.util.UUID
+    + getBounds() : geometry.Rect
+    + getStrokeColor() : geometry.ColorData
+    + getFillColor() : geometry.ColorData
+  }
+  note right of Shape
+    The Element interface declares an `accept`
+    operation that takes a visitor as an argument.
+  end note
+
+  class LineSegment <<ConcreteElement>> implements Shape {
+    + accept(v : View.ShapeVisitor)
+  }
+  note top of LineSegment : ConcreteElement
+
+  class RectangleShape <<ConcreteElement>> implements Shape {
+    + accept(v : View.ShapeVisitor)
+  }
+  note top of RectangleShape : ConcreteElement
+
+  class EllipseShape <<ConcreteElement>> implements Shape {
+    + accept(v : View.ShapeVisitor)
+  }
+  note top of EllipseShape : ConcreteElement
+
+  class Drawing <<Source of Elements>> {
+    - shapes : List<Shape>
+    + getShapes() : Iterable<Shape>
+  }
+  Drawing o-- "*" Shape : contains
+}
+
+' ===================== VIEW (Visitor Implementation and Usage) =====================
+package View <<Visitors and Client>> {
+
+  interface ShapeVisitor <<Visitor>> {
+    + visit(r : Model.RectangleShape)
+    + visit(e : Model.EllipseShape)
+    + visit(l : Model.LineSegment)
+  }
+  note left of ShapeVisitor
+    The Visitor interface declares a set of
+    visiting methods that correspond to
+    ConcreteElement classes.
+  end note
+
+  class JavaFXShapeRenderer <<ConcreteVisitor>> implements ShapeVisitor {
+    - gc : javafx.scene.canvas.GraphicsContext
+    + JavaFXShapeRenderer(gc : javafx.scene.canvas.GraphicsContext)
+    + visit(r : Model.RectangleShape)
+    + visit(e : Model.EllipseShape)
+    + visit(l : Model.LineSegment)
+  }
+  note right of JavaFXShapeRenderer
+    ConcreteVisitor that implements the
+    rendering logic using JavaFX GraphicsContext.
+  end note
+
+  class CanvasPanel <<Client (Visitor Pattern)>> {
+    - gc : javafx.scene.canvas.GraphicsContext
+    - shapeRenderer : ShapeVisitor
+    + CanvasPanel(gc: javafx.scene.canvas.GraphicsContext, renderer: ShapeVisitor)
+    + drawShapes(shapes : Iterable<Model.Shape>)
+    + clear()
+  }
+  note top of CanvasPanel
+    The Client that uses the Visitor.
+    It iterates over Shapes and calls `accept()` on each,
+    passing the ConcreteVisitor.
+  end note
+}
+
+' ====================== VISITOR PATTERN INTERACTIONS ===================
+View.CanvasPanel -[#blue,thickness=2]> Model.Shape : calls accept(shapeRenderer)
+Model.RectangleShape -[#green,thickness=2]> View.ShapeVisitor : calls visit(this)
+Model.EllipseShape   -[#green,thickness=2]> View.ShapeVisitor : calls visit(this)
+Model.LineSegment    -[#green,thickness=2]> View.ShapeVisitor : calls visit(this)
+
+View.JavaFXShapeRenderer .[#purple].> Model.RectangleShape : reads data
+View.JavaFXShapeRenderer .[#purple].> Model.EllipseShape : reads data
+View.JavaFXShapeRenderer .[#purple].> Model.LineSegment : reads data
+
+' Relationships:
+View.CanvasPanel o--> View.ShapeVisitor : uses
+View.JavaFXShapeRenderer ..> javafx.scene.canvas.GraphicsContext : uses
+
+Model.LineSegment ..|> Model.Shape
+Model.RectangleShape ..|> Model.Shape
+Model.EllipseShape ..|> Model.Shape
+
+View.JavaFXShapeRenderer ..|> View.ShapeVisitor
+
+@enduml

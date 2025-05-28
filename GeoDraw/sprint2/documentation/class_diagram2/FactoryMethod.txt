@@ -1,0 +1,103 @@
+@startuml
+title Factory Method Pattern Focus (for Shape Creation)
+
+skinparam style strictuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontName Arial
+skinparam stereotypeCBackgroundColor PaleGreen
+skinparam stereotypeIBackgroundColor LightSkyBlue
+skinparam packageStyle Rectangle
+
+' ===================== MODEL (Products created by the Factory) =====================
+package Model <<Products>> {
+
+  interface Shape <<Product>> {
+    + getId() : java.util.UUID
+  }
+  note right of Shape
+    The Product interface declares the operations
+    that all concrete products must implement.
+  end note
+
+  class LineSegment <<ConcreteProduct>> implements Shape {
+    + LineSegment(p1: geometry.Point2D, p2: geometry.Point2D, stroke: geometry.ColorData)
+  }
+  note top of LineSegment : ConcreteProduct
+
+  class RectangleShape <<ConcreteProduct>> implements Shape {
+    + RectangleShape(bounds: geometry.Rect, stroke: geometry.ColorData, fill: geometry.ColorData)
+  }
+  note top of RectangleShape : ConcreteProduct
+
+  class EllipseShape <<ConcreteProduct>> implements Shape {
+    + EllipseShape(bounds: geometry.Rect, stroke: geometry.ColorData, fill: geometry.ColorData)
+  }
+  note top of EllipseShape : ConcreteProduct
+
+  package geometry <<Details>> {
+    class Point2D
+    class Rect
+    class ColorData
+  }
+}
+
+' ====================== FACTORY (Creator with Factory Method) ===================
+package Factory <<Creator>> {
+
+  class ShapeFactory <<ConcreteCreator>> {
+    + createShape(toolName : String,
+                  p1 : Model.geometry.Point2D,
+                  p2 : Model.geometry.Point2D,
+                  strokeColor: Model.geometry.ColorData,
+                  fillColor: Model.geometry.ColorData) : Model.Shape
+  }
+  note left of ShapeFactory
+    The Creator class declares the factory method
+    that returns new product objects.
+    The method return type must match the Product interface (Shape).
+  end note
+}
+
+' =================== CONTROLLER (Client using the Factory) ==================
+package Controller <<Client>> {
+
+  class GeoEngine {
+    - shapeFactory : Factory.ShapeFactory
+    - drawing : Model.Drawing
+    + GeoEngine(factory: Factory.ShapeFactory, drawing: Model.Drawing)
+    + handleCreateShapeRequest(toolName: String,
+        p1: Model.geometry.Point2D,
+        p2: Model.geometry.Point2D,
+        stroke: Model.geometry.ColorData,
+        fill: Model.geometry.ColorData)
+  }
+  note right of GeoEngine
+    The Client calls the factory method on the ConcreteCreator
+    without knowing which specific Product it receives.
+  end note
+
+  class Drawing <<Model Detail>> {
+    + addShape(s : Model.Shape)
+  }
+
+  GeoEngine o--> Model.Drawing : uses
+}
+
+
+' ====================== FACTORY METHOD INTERACTIONS ===================
+
+Controller.GeoEngine -[#blue,thickness=2]> Factory.ShapeFactory : calls createShape(...)
+Factory.ShapeFactory .[#green,thickness=2].> Model.LineSegment : creates >
+Factory.ShapeFactory .[#green,thickness=2].> Model.RectangleShape : creates >
+Factory.ShapeFactory .[#green,thickness=2].> Model.EllipseShape : creates >
+Factory.ShapeFactory -[#purple,thickness=2]-> Controller.GeoEngine : returns Shape
+Controller.GeoEngine -[#orange,thickness=2]-> Model.Shape : uses (e.g., adds to Drawing)
+
+' Relationships:
+Controller.GeoEngine o--> Factory.ShapeFactory : uses >
+
+Model.LineSegment ..|> Model.Shape
+Model.RectangleShape ..|> Model.Shape
+Model.EllipseShape ..|> Model.Shape
+
+@enduml
