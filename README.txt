@@ -5,4 +5,7 @@ Link Presentazione Pre-Game:
 https://unisalerno-my.sharepoint.com/:p:/g/personal/a_parente16_studenti_unisa_it/ERK-j-VAYpZGgFzJaC6ZFugBgK6qGGSVzwBOeFiWKV-Huw?e=cmLFSN
 
 Link Presentazione 1 Sprint:
-https://unisalerno-my.sharepoint.com/:p:/r/personal/a_parente16_studenti_unisa_it/Documents/Gruppo%2011%20-%2021.05.25.pptx?d=w31adec539696444fa0326381c217811c&csf=1&web=1&e=511yhn
+https://unisalerno-my.sharepoint.com/:p:/g/personal/f_monda2_studenti_unisa_it/EY1l8pajoW5Og9zM9LBUQNoBHIn3NO6yA66p4WFqtaiElw?e=gfLvad
+
+Link Presentazione 2 Sprint:
+https://unisalerno-my.sharepoint.com/:p:/
