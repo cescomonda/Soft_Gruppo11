@@ -8,4 +8,4 @@ Link Presentazione 1 Sprint:
 https://unisalerno-my.sharepoint.com/:p:/g/personal/f_monda2_studenti_unisa_it/EY1l8pajoW5Og9zM9LBUQNoBHIn3NO6yA66p4WFqtaiElw?e=gfLvad
 
 Link Presentazione 2 Sprint:
-https://unisalerno-my.sharepoint.com/:p:/
+https://unisalerno-my.sharepoint.com/:p:/g/personal/a_parente16_studenti_unisa_it/EalqlOzi9vRJhx5fs_zK4rEBFV4Z5MLvWhfelfytyNhJMw?e=dhaimo
