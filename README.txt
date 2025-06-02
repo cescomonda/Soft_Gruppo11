@@ -9,3 +9,6 @@ https://unisalerno-my.sharepoint.com/:p:/g/personal/f_monda2_studenti_unisa_it/E
 
 Link Presentazione 2 Sprint:
 https://unisalerno-my.sharepoint.com/:p:/g/personal/a_parente16_studenti_unisa_it/EalqlOzi9vRJhx5fs_zK4rEBFV4Z5MLvWhfelfytyNhJMw?e=dhaimo
+
+Link Presentazione 3 Sprint:
+https://unisalerno-my.sharepoint.com/:p:/g/personal/a_parente16_studenti_unisa_it/Ecs8aIhMFXhHp5zXaWtq4GABGycQT-xPRRssRF1pqnfPbQ?e=Ud8f3W
