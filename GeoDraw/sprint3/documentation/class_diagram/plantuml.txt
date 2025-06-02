@@ -1,0 +1,1044 @@
+@startuml
+!theme vibrant
+
+
+' Skinparams for better readability
+skinparam classAttributeIconSize 0
+skinparam packageStyle rect
+skinparam defaultFontName Arial
+skinparam ArrowColor #555555
+skinparam ClassBorderColor #555555
+skinparam ClassBackgroundColor #F8F8F8
+skinparam ClassHeaderBackgroundColor #DDDDDD
+
+interface sad.gruppo11.Model.Observable {
+  + attach(Observer o)
+  + detach(Observer o)
+  + notifyObservers(Object arg)
+}
+
+interface sad.gruppo11.View.Observer {
+  + update(Observable source, Object arg)
+}
+
+interface sad.gruppo11.Model.Shape {
+  + {abstract} getId() : UUID
+  + {abstract} move(Vector2D v)
+  + {abstract} resize(Rect bounds)
+  + {abstract} setStrokeColor(ColorData c)
+  + {abstract} getStrokeColor() : ColorData
+  + {abstract} setFillColor(ColorData c)
+  + {abstract} getFillColor() : ColorData
+  + {abstract} contains(Point2D p) : boolean
+  + {abstract} accept(ShapeVisitor v)
+  + {abstract} clone() : Shape
+  + {abstract} getBounds() : Rect
+  + {abstract} setRotation(double angle)
+  + {abstract} getRotation() : double
+  + {abstract} setText(String text)
+  + {abstract} getText() : String
+  + {abstract} setFontSize(double size)
+  + {abstract} getFontSize() : double
+  + {abstract} cloneWithNewId() : Shape
+  
+' New for Sprint 3
+  + {abstract} reflectHorizontal()
+  + {abstract} reflectVertical()
+  + {abstract} add(Shape s) 
+' For Composite
+  + {abstract} remove(Shape s) 
+' For Composite
+  + {abstract} getChild(int i) : Shape 
+' For Composite
+  + {abstract} getChildren() : List<Shape> 
+' For Composite
+  + {abstract} isComposite() : boolean 
+' For Composite
+}
+
+interface sad.gruppo11.View.ShapeVisitor {
+  + visit(RectangleShape r)
+  + visit(EllipseShape e)
+  + visit(LineSegment l)
+  + visit(PolygonShape p)
+  + visit(TextShape t)
+  + visit(GroupShape g) 
+' New for Sprint 3
+}
+
+interface sad.gruppo11.Infrastructure.Command {
+  + {abstract} execute()
+  + {abstract} undo()
+}
+
+interface sad.gruppo11.Controller.ToolState {
+  + {abstract} onMousePressed(GeoEngine engine, Point2D p)
+  + {abstract} onMouseDragged(GeoEngine engine, Point2D p)
+  + {abstract} onMouseReleased(GeoEngine engine, Point2D p)
+  + {abstract} getName() : String
+  + {abstract} activate(GeoEngine engine)
+  + {abstract} deactivate(GeoEngine engine)
+}
+
+interface sad.gruppo11.Persistence.IDrawingSerializer {
+  + save(Drawing d, String path)
+  + load(String path) : Drawing
+}
+
+
+' New for Sprint 3
+interface sad.gruppo11.Persistence.IReusableShapeLibrarySerializer {
+  + save(ReusableShapeLibrary library, String path)
+  + load(String path) : ReusableShapeLibrary
+}
+
+
+package sad.gruppo11.Model {
+  class Drawing implements sad.gruppo11.Model.Observable {
+    - shapes: List<Shape>
+    - observers: List<Observer>
+    + addShape(Shape s)
+    + removeShape(Shape s) : boolean
+    + clear()
+    + getShapesInZOrder() : List<Shape>
+    + findShapeById(UUID id) : Shape
+    + bringToFront(Shape shape)
+    + sendToBack(Shape shape)
+    + attach(Observer o)
+    + detach(Observer o)
+    + notifyObservers(Object arg)
+  }
+  Drawing o-- "0..*" Shape : contains
+
+  abstract class AbstractBaseShape implements Shape {
+    
+' Common implementations or abstract stubs for non-composite shapes
+    
+' Default Composite methods
+    + add(Shape s) {throw UnsupportedOperationException}
+    + remove(Shape s) {throw UnsupportedOperationException}
+    + getChild(int i) : Shape {throw UnsupportedOperationException}
+    + getChildren() : List<Shape> {return Collections.emptyList()}
+    + isComposite() : boolean {return false}
+    
+' Other methods to be implemented by concrete leaf shapes
+  }
+
+  class LineSegment extends AbstractBaseShape {
+    - id: UUID
+    - startPoint: Point2D
+    - endPoint: Point2D
+    - strokeColor: ColorData
+    - rotationAngle: double
+    + getStartPoint() : Point2D
+    + getEndPoint() : Point2D
+    
+' Methods from Shape interface
+    + getId() : UUID
+    + move(Vector2D v)
+    + resize(Rect bounds)
+    + setStrokeColor(ColorData c)
+    + getStrokeColor() : ColorData
+    + setFillColor(ColorData c) 
+' No-op
+    + getFillColor() : ColorData 
+' Returns TRANSPARENT
+    + contains(Point2D p) : boolean
+    + accept(ShapeVisitor v)
+    + clone() : Shape
+    + getBounds() : Rect
+    + setRotation(double angle)
+    + getRotation() : double
+    + setText(String text) 
+' No-op
+    + getText() : String 
+' Returns ""
+    + setFontSize(double size) 
+' No-op
+    + getFontSize() : double 
+' Returns 0
+    + cloneWithNewId() : Shape
+    + reflectHorizontal()
+    + reflectVertical()
+  }
+
+  class RectangleShape extends AbstractBaseShape {
+    - id: UUID
+    - bounds: Rect
+    - strokeColor: ColorData
+    - fillColor: ColorData
+    - rotationAngle: double
+    
+' Methods from Shape interface
+    + getId() : UUID
+    + move(Vector2D v)
+    + resize(Rect bounds)
+    + setStrokeColor(ColorData c)
+    + getStrokeColor() : ColorData
+    + setFillColor(ColorData c)
+    + getFillColor() : ColorData
+    + contains(Point2D p) : boolean
+    + accept(ShapeVisitor v)
+    + clone() : Shape
+    + getBounds() : Rect
+    + setRotation(double angle)
+    + getRotation() : double
+    + setText(String text) 
+' No-op
+    + getText() : String 
+' Returns ""
+    + setFontSize(double size) 
+' No-op
+    + getFontSize() : double 
+' Returns 0
+    + cloneWithNewId() : Shape
+    + reflectHorizontal()
+    + reflectVertical()
+  }
+
+  class EllipseShape extends AbstractBaseShape {
+    - id: UUID
+    - bounds: Rect
+    - strokeColor: ColorData
+    - fillColor: ColorData
+    - rotationAngle: double
+    
+' Methods from Shape interface
+    + getId() : UUID
+    + move(Vector2D v)
+    + resize(Rect bounds)
+    + setStrokeColor(ColorData c)
+    + getStrokeColor() : ColorData
+    + setFillColor(ColorData c)
+    + getFillColor() : ColorData
+    + contains(Point2D p) : boolean
+    + accept(ShapeVisitor v)
+    + clone() : Shape
+    + getBounds() : Rect
+    + setRotation(double angle)
+    + getRotation() : double
+    + setText(String text) 
+' No-op
+    + getText() : String 
+' Returns ""
+    + setFontSize(double size) 
+' No-op
+    + getFontSize() : double 
+' Returns 0
+    + cloneWithNewId() : Shape
+    + reflectHorizontal()
+    + reflectVertical()
+  }
+
+  class PolygonShape extends AbstractBaseShape {
+    - id: UUID
+    - vertices: List<Point2D>
+    - strokeColor: ColorData
+    - fillColor: ColorData
+    - rotationAngle: double
+    + getVertices() : List<Point2D>
+    
+' Methods from Shape interface
+    + getId() : UUID
+    + move(Vector2D v)
+    + resize(Rect bounds)
+    + setStrokeColor(ColorData c)
+    + getStrokeColor() : ColorData
+    + setFillColor(ColorData c)
+    + getFillColor() : ColorData
+    + contains(Point2D p) : boolean
+    + accept(ShapeVisitor v)
+    + clone() : Shape
+    + getBounds() : Rect
+    + setRotation(double angle)
+    + getRotation() : double
+    + setText(String text) 
+' No-op
+    + getText() : String 
+' Returns ""
+    + setFontSize(double size) 
+' No-op
+    + getFontSize() : double 
+' Returns 0
+    + cloneWithNewId() : Shape
+    + reflectHorizontal()
+    + reflectVertical()
+  }
+
+  class TextShape extends AbstractBaseShape {
+    - id: UUID
+    - text: String
+    - baseFontSize: double
+    - fontName: String
+    - textColor: ColorData 
+' Note: Shape interface has fillColor, strokeColor. Text might primarily use fillColor for text color.
+    - rotationAngle: double
+    - drawingBounds: Rect 
+' Position is often top-left of this bounds
+    + getPosition() : Point2D
+    + getFontName() : String
+    + getBaseFontSize() : double
+    + getDrawingBounds() : Rect
+    
+' Methods from Shape interface
+    + getId() : UUID
+    + move(Vector2D v)
+    + resize(Rect bounds)
+    + setStrokeColor(ColorData c) 
+' Might be outline or unused
+    + getStrokeColor() : ColorData
+    + setFillColor(ColorData c) 
+' Typically the text color itself
+    + getFillColor() : ColorData
+    + contains(Point2D p) : boolean
+    + accept(ShapeVisitor v)
+    + clone() : Shape
+    + getBounds() : Rect
+    + setRotation(double angle)
+    + getRotation() : double
+    + setText(String text)
+    + getText() : String
+    + setFontSize(double size)
+    + getFontSize() : double
+    + cloneWithNewId() : Shape
+    + reflectHorizontal()
+    + reflectVertical()
+  }
+
+  
+' New for Sprint 3: Composite Shape
+  class GroupShape implements Shape {
+    - id: UUID
+    - children: List<Shape>
+    - rotationAngle: double 
+' Group rotation might be complex, applied to children relative to group center
+    - groupBounds: Rect 
+' Calculated from children
+    + getId() : UUID
+    + move(Vector2D v) 
+' Moves all children
+    + resize(Rect bounds) 
+' Resizes all children proportionally or individually - complex
+    + setStrokeColor(ColorData c) 
+' Applies to all children
+    + getStrokeColor() : ColorData 
+' May return common color or null
+    + setFillColor(ColorData c) 
+' Applies to all children
+    + getFillColor() : ColorData 
+' May return common color or null
+    + contains(Point2D p) : boolean 
+' True if any child contains p
+    + accept(ShapeVisitor v)
+    + clone() : Shape 
+' Deep clones children
+    + getBounds() : Rect 
+' Bounding box of all children
+    + setRotation(double angle) 
+' Rotates group, complex for children
+    + getRotation() : double
+    + setText(String text) 
+' No-op
+    + getText() : String 
+' Returns ""
+    + setFontSize(double size) 
+' No-op
+    + getFontSize() : double 
+' Returns 0
+    + cloneWithNewId() : Shape 
+' Deep clones children, new IDs for group and children
+    + reflectHorizontal() 
+' Reflects all children relative to group center
+    + reflectVertical() 
+' Reflects all children relative to group center
+    
+' Composite methods
+    + add(Shape s)
+    + remove(Shape s)
+    + getChild(int i) : Shape
+    + getChildren() : List<Shape>
+    + isComposite() : boolean {return true}
+  }
+  GroupShape o-- "0..*" Shape : children
+}
+
+package sad.gruppo11.Model.geometry {
+  class Point2D {
+    - x: double
+    - y: double
+    + getX() : double
+    + getY() : double
+    + distance(Point2D other) : double
+    + translate(double dx, double dy)
+  }
+
+  class Vector2D {
+    - dx: double
+    - dy: double
+    + getDx() : double
+    + getDy() : double
+    + length() : double
+    + normalize()
+    + inverse() : Vector2D
+  }
+  Point2D ..> Vector2D : uses
+
+  class Rect {
+    - topLeft: Point2D
+    - width: double
+    - height: double
+    + getTopLeft() : Point2D
+    + getWidth() : double
+    + getHeight() : double
+    + getCenter() : Point2D
+    + contains(Point2D p) : boolean
+  }
+  Rect o-- "1" Point2D : topLeft
+
+  class ColorData {
+    - r: int
+    - g: int
+    - b: int
+    - a: double
+    + {static} BLACK: ColorData
+    + {static} TRANSPARENT: ColorData
+    + getR() : int
+    + getG() : int
+    + getB() : int
+    + getA() : double
+  }
+}
+
+package sad.gruppo11.Infrastructure {
+  class CommandManager {
+    - undoStack: Stack<Command>
+    - redoStack: Stack<Command>
+    - drawingModel: Drawing
+    + executeCommand(Command cmd)
+    + undo()
+    + redo()
+    + canUndo() : boolean
+    + canRedo() : boolean
+    + setDrawingModel(Drawing model)
+  }
+  CommandManager o-- "0..*" Command : manages
+  CommandManager ..> Drawing : notifies
+
+  class Clipboard {
+    - {static} instance: Clipboard
+    - content: Shape 
+' Could be a GroupShape
+    + {static} getInstance() : Clipboard
+    + set(Shape shape)
+    + get() : Shape
+    + isEmpty() : boolean
+  }
+  Clipboard o-- "0..1" Shape : holds copy
+
+  abstract class AbstractShapeCommand implements sad.gruppo11.Infrastructure.Command {
+    # receiverShape: Shape
+    # oldStateSnapshot : Shape 
+' For generic undo, store a clone
+    + AbstractShapeCommand(Shape receiver)
+    + {abstract} execute()
+    + {abstract} undo()
+  }
+  AbstractShapeCommand o-- "1" Shape
+
+  abstract class AbstractDrawingCommand implements sad.gruppo11.Infrastructure.Command {
+    # receiverDrawing: Drawing
+    + AbstractDrawingCommand(Drawing receiver)
+    + {abstract} execute()
+    + {abstract} undo()
+  }
+  AbstractDrawingCommand o-- "1" Drawing
+
+  class AddShapeCommand extends AbstractDrawingCommand {
+    - shapeToAdd: Shape
+    + AddShapeCommand(Drawing receiver, Shape shape)
+    + execute()
+    + undo()
+  }
+  AddShapeCommand o-- "1" Shape
+
+  class DeleteShapeCommand extends AbstractDrawingCommand {
+    - shapeToRemove: Shape
+    - originalIndex: int 
+' To restore z-order
+    + DeleteShapeCommand(Drawing receiver, Shape shape)
+    + execute()
+    + undo()
+  }
+  DeleteShapeCommand o-- "1" Shape
+
+  class MoveShapeCommand extends AbstractShapeCommand {
+    - moveVector: Vector2D
+    - oldPositionMemo: Object 
+' Or store cloned shape before move
+    + MoveShapeCommand(Shape receiver, Vector2D vec)
+    + execute()
+    + undo()
+  }
+  MoveShapeCommand ..> Vector2D
+
+  class ResizeShapeCommand extends AbstractShapeCommand {
+    - newBounds: Rect
+    - oldBounds: Rect
+    + ResizeShapeCommand(Shape receiver, Rect newB, Rect oldB)
+    + execute()
+    + undo()
+  }
+  ResizeShapeCommand ..> Rect
+
+  class RotateShapeCommand extends AbstractShapeCommand {
+    - targetAngle: double
+    - oldAngle: double
+    + RotateShapeCommand(Shape receiver, double target, double old)
+    + execute()
+    + undo()
+  }
+
+  class ChangeStrokeColorCommand extends AbstractShapeCommand {
+    - newColor: ColorData
+    - oldColor: ColorData
+    + ChangeStrokeColorCommand(Shape receiver, ColorData nCol, ColorData oCol)
+    + execute()
+    + undo()
+  }
+  ChangeStrokeColorCommand ..> ColorData
+
+  class ChangeFillColorCommand extends AbstractShapeCommand {
+    - newColor: ColorData
+    - oldColor: ColorData
+    + ChangeFillColorCommand(Shape receiver, ColorData nCol, ColorData oCol)
+    + execute()
+    + undo()
+  }
+  ChangeFillColorCommand ..> ColorData
+
+  class ChangeTextContentCommand extends AbstractShapeCommand {
+    - newContent: String
+    - oldContent: String
+    + ChangeTextContentCommand(Shape receiver, String nContent, String oContent)
+    + execute()
+    + undo()
+  }
+
+  class ChangeTextSizeCommand extends AbstractShapeCommand {
+    - newSize: double
+    - oldSize: double
+    + ChangeTextSizeCommand(Shape receiver, double nSize, double oSize)
+    + execute()
+    + undo()
+  }
+
+  class CopyShapeCommand extends AbstractShapeCommand {
+    - clipboard: Clipboard
+    + CopyShapeCommand(Shape receiver, Clipboard clip)
+    + execute()
+    + undo() 
+' Likely a no-op for undo
+  }
+  CopyShapeCommand ..> Clipboard
+
+  class PasteShapeCommand extends AbstractDrawingCommand {
+    - clipboard: Clipboard
+    - pastedShapeInstance: Shape
+    - pasteOffset: Vector2D
+    + PasteShapeCommand(Drawing receiver, Clipboard clip, Vector2D offset)
+    + execute()
+    + undo()
+  }
+  PasteShapeCommand ..> Clipboard
+  PasteShapeCommand ..> Vector2D
+  PasteShapeCommand o-- "0..1" Shape
+
+  class CutShapeCommand implements sad.gruppo11.Infrastructure.Command { 
+' Not AbstractShapeCommand, combines delete and copy
+    - drawing: Drawing
+    - clipboard: Clipboard
+    - shapeToCut: Shape
+    - originalIndex: int
+    + CutShapeCommand(Drawing drawing, Shape shapeToCut, Clipboard clipboard)
+    + execute()
+    + undo()
+  }
+  CutShapeCommand ..> Drawing
+  CutShapeCommand ..> Clipboard
+  CutShapeCommand o-- "1" Shape
+
+  class BringToFrontCommand extends AbstractDrawingCommand {
+    - shapeToModify: Shape
+    - oldIndex: int
+    + BringToFrontCommand(Drawing receiver, Shape shape)
+    + execute()
+    + undo()
+  }
+  BringToFrontCommand o-- "1" Shape
+
+  class SendToBackCommand extends AbstractDrawingCommand {
+    - shapeToModify: Shape
+    - oldIndex: int
+    + SendToBackCommand(Drawing receiver, Shape shape)
+    + execute()
+    + undo()
+  }
+  SendToBackCommand o-- "1" Shape
+
+  
+' New Commands for Sprint 3
+  class ReflectHorizontalCommand extends AbstractShapeCommand {
+    
+' oldState can be stored by cloning the shape before reflection
+    + ReflectHorizontalCommand(Shape receiver)
+    + execute()
+    + undo() 
+' Apply reflection again or restore old state
+  }
+
+  class ReflectVerticalCommand extends AbstractShapeCommand {
+    
+' oldState can be stored by cloning the shape before reflection
+    + ReflectVerticalCommand(Shape receiver)
+    + execute()
+    + undo() 
+' Apply reflection again or restore old state
+  }
+
+  class GroupShapesCommand extends AbstractDrawingCommand {
+    - shapesToGroup: List<Shape>
+    - createdGroup: GroupShape
+    - originalIndices: Map<Shape, Integer>
+    + GroupShapesCommand(Drawing receiver, List<Shape> shapes)
+    + execute() 
+' Removes shapesToGroup, adds createdGroup
+    + undo()    
+' Removes createdGroup, adds shapesToGroup back
+  }
+  GroupShapesCommand ..> GroupShape
+
+  class UngroupShapeCommand extends AbstractDrawingCommand {
+    - groupToUngroup: GroupShape
+    - originalChildren: List<Shape>
+    - originalGroupIndex: int
+    + UngroupShapeCommand(Drawing receiver, GroupShape group)
+    + execute() 
+' Removes groupToUngroup, adds its children
+    + undo()    
+' Removes children, adds groupToUngroup back
+  }
+  UngroupShapeCommand o-- "1" GroupShape
+
+
+  
+' New for Sprint 3: Reusable Shapes
+  class ReusableShapeDefinition {
+    - name: String
+    - prototype: Shape 
+' A deep clone of the shape/group
+    + ReusableShapeDefinition(String name, Shape prototype)
+    + getName() : String
+    + getPrototype() : Shape
+  }
+  ReusableShapeDefinition o-- "1" Shape : prototype
+
+  class ReusableShapeLibrary {
+    - definitions: Map<String, ReusableShapeDefinition>
+    + addDefinition(ReusableShapeDefinition def)
+    + getDefinition(String name) : ReusableShapeDefinition
+    + removeDefinition(String name)
+    + getAllDefinitions() : Collection<ReusableShapeDefinition>
+    + renameDefinition(String oldName, String newName) 
+' For import conflicts
+  }
+  ReusableShapeLibrary o-- "0..*" ReusableShapeDefinition : definitions
+}
+
+
+package sad.gruppo11.Factory {
+  class ShapeFactory {
+    + createShape(String toolName, Point2D p1, Point2D p2, ColorData stroke, ColorData fill, Map<String, Object> opt) : Shape
+    
+' createShape might need more parameters or a config object for advanced shapes like Text, Polygon
+  }
+  ShapeFactory ..> Shape : creates
+  ShapeFactory ..> Point2D
+  ShapeFactory ..> ColorData
+  ShapeFactory ..> Rect
+  ShapeFactory ..> LineSegment
+  ShapeFactory ..> RectangleShape
+  ShapeFactory ..> EllipseShape
+  ShapeFactory ..> PolygonShape
+  ShapeFactory ..> TextShape
+  
+' ShapeFactory does not directly create GroupShape, that
+'s a command/user action
+}
+
+package sad.gruppo11.Persistence {
+  class PersistenceController {
+    - drawingSerializer: IDrawingSerializer
+    - librarySerializer: IReusableShapeLibrarySerializer 
+' New for Sprint 3
+    + PersistenceController(IDrawingSerializer ds, IReusableShapeLibrarySerializer ls)
+    + saveDrawing(Drawing d, String path)
+    + loadDrawing(String path) : Drawing
+    
+' New for Sprint 3
+    + exportReusableLibrary(ReusableShapeLibrary library, String path)
+    + importReusableLibrary(String path) : ReusableShapeLibrary
+  }
+  PersistenceController o-- "1" IDrawingSerializer
+  PersistenceController o-- "1" IReusableShapeLibrarySerializer 
+' New for Sprint 3
+
+  class DrawingSerializer implements sad.gruppo11.Persistence.IDrawingSerializer {
+    
+' Needs to handle GroupShape serialization/deserialization
+    + save(Drawing d, String path)
+    + load(String path) : Drawing
+  }
+  DrawingSerializer ..> Drawing
+  DrawingSerializer ..> GroupShape 
+' dependency for serialization
+
+  
+' New for Sprint 3
+  class ReusableShapeLibrarySerializer implements sad.gruppo11.Persistence.IReusableShapeLibrarySerializer {
+    
+' Will need to serialize Shape objects (including GroupShape)
+    + save(ReusableShapeLibrary library, String path)
+    + load(String path) : ReusableShapeLibrary
+  }
+  ReusableShapeLibrarySerializer ..> ReusableShapeLibrary
+  ReusableShapeLibrarySerializer ..> Shape 
+' for serializing prototypes
+  ReusableShapeLibrarySerializer ..> GroupShape 
+' for serializing prototypes
+}
+
+package sad.gruppo11.Controller {
+  class GeoEngine implements sad.gruppo11.Model.Observable {
+    - currentState: ToolState
+    - drawing: Drawing
+    - cmdMgr: CommandManager
+    - persistenceController: PersistenceController
+    - clipboard: Clipboard
+    - shapeFactory: ShapeFactory
+    - view: DrawingView
+    - selectedShapes: List<Shape> 
+' Changed from selectedShape to List<Shape> for multi-select/grouping
+    - currentStrokeColorForNewShapes: ColorData
+    - currentFillColorForNewShapes: ColorData
+    - currentZoom: double
+    - scrollOffsetX: double
+    - scrollOffsetY: double
+    - gridEnabled: boolean
+    - gridSize: double
+    - toolStates: Map<String, ToolState>
+    - reusableShapeLibrary: ReusableShapeLibrary 
+' New for Sprint 3
+    + setState(String stateName)
+    + onMousePressed(Point2D p)
+    + onMouseDragged(Point2D p)
+    + onMouseReleased(Point2D p)
+    + addShapeToDrawing(Shape shape) 
+' Uses AddShapeCommand
+    + saveDrawing(String path)
+    + loadDrawing(String path)
+    + getDrawing() : Drawing
+    + getSelectedShapes() : List<Shape>
+    + setSelectedShapes(List<Shape> shapes)
+    + clearSelection()
+    + addShapeToSelection(Shape shape)
+    + removeShapeFromSelection(Shape shape)
+    + attach(Observer o)
+    + detach(Observer o)
+    + notifyObservers(Object arg)
+    
+' New methods for Sprint 3
+    + reflectSelectedShapesHorizontal()
+    + reflectSelectedShapesVertical()
+    + groupSelectedShapes()
+    + ungroupSelectedShape(GroupShape group) 
+' Assumes a single group is selected for ungrouping
+    + saveSelectedAsReusableShape(String name)
+    + placeReusableShape(String name, Point2D position)
+    + exportReusableLibrary(String path)
+    + importReusableLibrary(String path)
+    + getReusableShapeLibrary() : ReusableShapeLibrary
+  }
+  GeoEngine o-- "1" ToolState : activeState
+  GeoEngine o-- "1" Drawing : manages
+  GeoEngine o-- "1" CommandManager : uses
+  GeoEngine o-- "1" PersistenceController : uses
+  GeoEngine o-- "1" Clipboard : uses
+  GeoEngine o-- "1" ShapeFactory : uses
+  GeoEngine o-- "1..*" ToolState : availableStates
+  GeoEngine --> "0..*" Shape : selectedShapes 
+' Changed to List
+  GeoEngine o-- "1" ReusableShapeLibrary : manages 
+' New for Sprint 3
+  GeoEngine ..> Point2D
+  GeoEngine ..> ColorData
+  GeoEngine ..> Rect
+  GeoEngine ..> Vector2D
+  GeoEngine "1" --o "0..1" sad.gruppo11.View.DrawingView : controls
+
+  class SelectState implements sad.gruppo11.Controller.ToolState {
+    
+' Needs to handle multi-selection (e.g. with Shift key)
+    
+' and selecting groups (clicking a member selects the group)
+    - mode: Mode (enum: IDLE, DRAGGING_SELECTION, SELECTING_AREA)
+    - pressPos: Point2D
+    - lastPos: Point2D
+    - shapeAtPress: Shape 
+' Might be a list if multi-drag
+    + onMousePressed(GeoEngine engine, Point2D p) 
+' Updates engine.selectedShapes
+    + onMouseDragged(GeoEngine engine, Point2D p)
+    + onMouseReleased(GeoEngine engine, Point2D p)
+    + getName() : String
+    + activate(GeoEngine engine)
+    + deactivate(GeoEngine engine)
+  }
+  SelectState ..> Point2D
+  SelectState ..> Shape
+  SelectState ..> Vector2D
+  SelectState ..> MoveShapeCommand
+  SelectState ..> GroupShape 
+' To check if shape is part of a group
+
+  class LineState implements sad.gruppo11.Controller.ToolState {
+    - firstPoint: Point2D
+    + onMousePressed(GeoEngine engine, Point2D p)
+    + onMouseDragged(GeoEngine engine, Point2D p)
+    + onMouseReleased(GeoEngine engine, Point2D p)
+    + getName() : String
+    + activate(GeoEngine engine)
+    + deactivate(GeoEngine engine)
+  }
+  LineState ..> Point2D
+  LineState ..> LineSegment : creates ghost
+
+  class RectangleState implements sad.gruppo11.Controller.ToolState {
+    - firstCorner: Point2D
+    + onMousePressed(GeoEngine engine, Point2D p)
+    + onMouseDragged(GeoEngine engine, Point2D p)
+    + onMouseReleased(GeoEngine engine, Point2D p)
+    + getName() : String
+    + activate(GeoEngine engine)
+    + deactivate(GeoEngine engine)
+  }
+  RectangleState ..> Point2D
+  RectangleState ..> RectangleShape : creates ghost
+
+  class EllipseState implements sad.gruppo11.Controller.ToolState {
+    - firstCorner: Point2D
+    + onMousePressed(GeoEngine engine, Point2D p)
+    + onMouseDragged(GeoEngine engine, Point2D p)
+    + onMouseReleased(GeoEngine engine, Point2D p)
+    + getName() : String
+    + activate(GeoEngine engine)
+    + deactivate(GeoEngine engine)
+  }
+  EllipseState ..> Point2D
+  EllipseState ..> EllipseShape : creates ghost
+
+  class PolygonState implements sad.gruppo11.Controller.ToolState {
+    - currentPoints: List<Point2D>
+    - isDrawing: boolean
+    + onMousePressed(GeoEngine engine, Point2D p)
+    + onMouseDragged(GeoEngine engine, Point2D p)
+    + onMouseReleased(GeoEngine engine, Point2D p) 
+' Could be double-click to finish
+    + getName() : String
+    + activate(GeoEngine engine)
+    + deactivate(GeoEngine engine)
+  }
+  PolygonState ..> Point2D
+
+  class TextState implements sad.gruppo11.Controller.ToolState {
+    + onMousePressed(GeoEngine engine, Point2D p) 
+' Prompts for text, creates TextShape
+    + onMouseDragged(GeoEngine engine, Point2D p) 
+' No-op or move ghost
+    + onMouseReleased(GeoEngine engine, Point2D p) 
+' No-op
+    + getName() : String
+    + activate(GeoEngine engine)
+    + deactivate(GeoEngine engine)
+  }
+  TextState ..> Point2D
+
+  
+' New ToolState for Sprint 3 (optional, could be direct action)
+  class PlaceReusableShapeState implements sad.gruppo11.Controller.ToolState {
+    - reusableShapeName: String
+    + PlaceReusableShapeState(String shapeName)
+    + onMousePressed(GeoEngine engine, Point2D p) 
+' Calls engine.placeReusableShape
+    + onMouseDragged(GeoEngine engine, Point2D p) 
+' Shows ghost of shape
+    + onMouseReleased(GeoEngine engine, Point2D p)
+    + getName() : String
+    + activate(GeoEngine engine)
+    + deactivate(GeoEngine engine)
+  }
+  PlaceReusableShapeState ..> Point2D
+  PlaceReusableShapeState ..> ReusableShapeDefinition
+}
+
+package sad.gruppo11.View {
+  class CanvasPanel {
+    - canvas: javafx.scene.canvas.Canvas
+    - gc: javafx.scene.canvas.GraphicsContext
+    - renderer: JavaFXShapeRenderer
+    - zoomFactor: double
+    - offsetX: double
+    - offsetY: double
+    - gridEnabled: boolean
+    - gridSize: double
+    - temporaryGhostShape: Shape
+    - selectionRect: javafx.scene.shape.Rectangle 
+' For area selection visual
+    + drawShapes(Iterable<Shape> shapes, List<Shape> selectedShapes) 
+' Highlight selected
+    + setTransform(double zoom, double newOffsetX, double newOffsetY)
+    + screenToWorld(Point2D screenPoint) : Point2D
+    + setTemporaryGhostShape(Shape ghostShape)
+    + clearTemporaryVisuals()
+    + drawSelectionHandles(Shape shape)
+  }
+  CanvasPanel o-- "1" JavaFXShapeRenderer : uses
+  CanvasPanel ..> Shape
+  CanvasPanel ..> Point2D
+  CanvasPanel ..> javafx.scene.canvas.Canvas : uses (dependency)
+
+
+  class DrawingView implements sad.gruppo11.View.Observer {
+    - controller: GeoEngine
+    - canvasPanel: CanvasPanel
+    - currentDrawingModel: Drawing
+    - primaryStage: javafx.stage.Stage
+    
+' UI elements for new features (group, ungroup, reflect, reusable shape palette)
+    + render()
+    + getUserInputForPath(boolean saveDialog, String dialogTitle, String initialFileName) : String
+    + showError(String message)
+    + promptForText(String promptMessage, String defaultValue) : String
+    + promptForShapeName(String promptMessage) : String 
+' For reusable shapes
+    + drawTemporaryGhostShape(Shape ghostShape)
+    + update(Observable source, Object arg) 
+' Re-render, update UI state (e.g. enable/disable buttons)
+    + displayReusableShapes(Collection<ReusableShapeDefinition> definitions)
+  }
+  DrawingView o-- "1" GeoEngine : interactsWith
+  DrawingView o-- "1" CanvasPanel : displaysOn
+  DrawingView ..> Drawing : observes
+  DrawingView ..> Shape : for temporary drawing
+  DrawingView ..> Point2D
+  DrawingView ..> ReusableShapeDefinition 
+' For display
+
+  class JavaFXShapeRenderer implements sad.gruppo11.View.ShapeVisitor {
+    - gc: javafx.scene.canvas.GraphicsContext
+    - defaultLineWidth: double
+    - currentlySelectedShapesForRendering: List<Shape>
+    + {static} convertModelToFxColor(ColorData colorData) : javafx.scene.paint.Color
+    + visit(RectangleShape r)
+    + visit(EllipseShape e)
+    + visit(LineSegment l)
+    + visit(PolygonShape p)
+    + visit(TextShape t)
+    + visit(GroupShape g) 
+' Iterates children and calls child.accept(this)
+  }
+  JavaFXShapeRenderer ..> javafx.scene.canvas.GraphicsContext : drawsOn
+  JavaFXShapeRenderer ..> Shape : renders
+  JavaFXShapeRenderer ..> ColorData
+  JavaFXShapeRenderer ..> Point2D
+  JavaFXShapeRenderer ..> Rect
+  JavaFXShapeRenderer ..> GroupShape
+}
+
+package sad.gruppo11 {
+  class MainApp extends javafx.application.Application implements sad.gruppo11.View.Observer {
+    - geoEngine: GeoEngine
+    - drawingView: DrawingView
+    - primaryStage: javafx.stage.Stage
+    
+' FXML injected fields like Buttons, TextFields, Menus for new features
+    
+' e.g., groupButton, ungroupButton, reflectHButton, reflectVButton
+    
+' e.g., saveReusableShapeButton, reusableShapesListView
+    
+' e.g., exportLibraryMenuItem, importLibraryMenuItem
+    + start(Stage primaryStage)
+    + update(Observable source, Object arg) 
+' Update UI based on model/controller changes
+    
+' Event handlers for new UI elements, e.g.:
+    
+' handleGroupAction(), handleUngroupAction(), handleReflectHorizontalAction()
+    
+' handleSaveReusableShapeAction(), handlePlaceReusableShapeAction(String name)
+    
+' handleExportLibraryAction(), handleImportLibraryAction()
+  }
+  MainApp o-- "1" GeoEngine : configuresAndUses
+  MainApp o-- "1" DrawingView : configuresAndUses
+  MainApp ..> Drawing : observes (via GeoEngine or directly if Drawing is also Observable source)
+  MainApp ..> CommandManager : (via GeoEngine)
+  MainApp ..> Clipboard : (via GeoEngine)
+  MainApp ..> ShapeFactory : (via GeoEngine)
+  MainApp ..> PersistenceController : (via GeoEngine)
+  MainApp ..> Shape : selectedShape (via GeoEngine)
+  MainApp ..> ColorData : for pickers
+  MainApp ..> ReusableShapeLibrary : (via GeoEngine for UI display)
+}
+
+
+' --------------------------------------------------
+
+' Emphasize Observer pattern (relazioni già presenti)
+
+' --------------------------------------------------
+note "GeoEngine.selectedShape becomes List<Shape> selectedShapes" as N_Selection
+sad.gruppo11.Controller.GeoEngine .. N_Selection
+
+note "Shape interface extended for Reflection and Composite pattern.\nGroupShape implements composite behavior." as N_Composite
+sad.gruppo11.Model.Shape .. N_Composite
+sad.gruppo11.Model.GroupShape .. N_Composite
+
+note "ReusableShapeLibrary manages named shape prototypes.\nPersistenceController and specific serializers handle their I/O." as N_Reusable
+sad.gruppo11.Infrastructure.ReusableShapeLibrary .. N_Reusable
+sad.gruppo11.Persistence.IReusableShapeLibrarySerializer .. N_Reusable
+sad.gruppo11.Persistence.PersistenceController .. N_Reusable
+
+
+note "MainApp initializes and wires\n most core components." as N1
+sad.gruppo11.MainApp .. N1
+
+note "GeoEngine acts as a facade\n for UI interactions with the model\n and manages application state (Context for State Pattern)." as N2
+sad.gruppo11.Controller.GeoEngine .. N2
+
+note "Shape hierarchy uses Visitor pattern\n for rendering (JavaFXShapeRenderer)." as N3
+sad.gruppo11.Model.Shape .. N3
+sad.gruppo11.View.ShapeVisitor .. N3
+
+note "Command pattern for undo/redo functionality.\n CommandManager is the Invoker." as N4
+sad.gruppo11.Infrastructure.Command .. N4
+sad.gruppo11.Infrastructure.CommandManager .. N4
+
+note "ShapeFactory encapsulates shape creation (Simple Factory)." as N5
+sad.gruppo11.Factory.ShapeFactory .. N5
+
+note "Drawing and GeoEngine are Observables.\n DrawingView and MainApp are Observers." as N6
+sad.gruppo11.Model.Observable .. N6
+sad.gruppo11.View.Observer .. N6
+
+@enduml

@@ -99,7 +99,7 @@ public class MainApp extends Application implements Observer {
     @Override
     public void start(Stage primaryStage) throws IOException {
         this.primaryStage = primaryStage;
-        primaryStage.setTitle("GeoDraw - UI Centralizzata!");
+        primaryStage.setTitle("GeoDraw");
 
         Drawing drawingModel = new Drawing();
         CommandManager commandManager = new CommandManager(drawingModel);

@@ -1,0 +1,683 @@
+@startuml
+!theme vibrant
+
+' Skinparams for better readability
+skinparam classAttributeIconSize 0
+skinparam packageStyle rect
+skinparam defaultFontName Arial
+skinparam ArrowColor #555555
+skinparam ClassBorderColor #555555
+skinparam ClassBackgroundColor #F8F8F8
+skinparam ClassHeaderBackgroundColor #DDDDDD
+
+interface sad.gruppo11.Model.Observable {
+  + attach(Observer o)
+  + detach(Observer o)
+  + notifyObservers(Object arg)
+}
+
+interface sad.gruppo11.View.Observer {
+  + update(Observable source, Object arg)
+}
+
+interface sad.gruppo11.Model.Shape {
+  + {abstract} getId() : UUID
+  + {abstract} move(Vector2D v)
+  + {abstract} resize(Rect bounds)
+  + {abstract} setStrokeColor(ColorData c)
+  + {abstract} getStrokeColor() : ColorData
+  + {abstract} setFillColor(ColorData c)
+  + {abstract} getFillColor() : ColorData
+  + {abstract} contains(Point2D p) : boolean
+  + {abstract} accept(ShapeVisitor v)
+  + {abstract} clone() : Shape
+  + {abstract} getBounds() : Rect
+  + {abstract} setRotation(double angle)
+  + {abstract} getRotation() : double
+  + {abstract} setText(String text)
+  + {abstract} getText() : String
+  + {abstract} setFontSize(double size)
+  + {abstract} getFontSize() : double
+  + {abstract} cloneWithNewId() : Shape
+}
+
+interface sad.gruppo11.View.ShapeVisitor {
+  + visit(RectangleShape r)
+  + visit(EllipseShape e)
+  + visit(LineSegment l)
+  + visit(PolygonShape p)
+  + visit(TextShape t)
+}
+
+interface sad.gruppo11.Infrastructure.Command {
+  + {abstract} execute()
+  + {abstract} undo()
+}
+
+interface sad.gruppo11.Controller.ToolState {
+  + {abstract} onMousePressed(GeoEngine engine, Point2D p)
+  + {abstract} onMouseDragged(GeoEngine engine, Point2D p)
+  + {abstract} onMouseReleased(GeoEngine engine, Point2D p)
+  + {abstract} getName() : String
+  + {abstract} activate(GeoEngine engine)
+  + {abstract} deactivate(GeoEngine engine)
+}
+
+interface sad.gruppo11.Persistence.IDrawingSerializer {
+  + save(Drawing d, String path)
+  + load(String path) : Drawing
+}
+
+package sad.gruppo11.Model {
+  class Drawing implements sad.gruppo11.Model.Observable {
+    - shapes: List<Shape>
+    - observers: List<Observer>
+    + addShape(Shape s)
+    + removeShape(Shape s) : boolean
+    + clear()
+    + getShapesInZOrder() : List<Shape>
+    + findShapeById(UUID id) : Shape
+    + bringToFront(Shape shape)
+    + sendToBack(Shape shape)
+    + attach(Observer o)
+    + detach(Observer o)
+    + notifyObservers(Object arg)
+  }
+  Drawing o-- "0..*" Shape : contains
+
+  class LineSegment implements Shape {
+    - id: UUID
+    - startPoint: Point2D
+    - endPoint: Point2D
+    - strokeColor: ColorData
+    - rotationAngle: double
+    + getStartPoint() : Point2D
+    + getEndPoint() : Point2D
+    ' Methods from Shape interface
+    + getId() : UUID
+    + move(Vector2D v)
+    + resize(Rect bounds)
+    + setStrokeColor(ColorData c)
+    + getStrokeColor() : ColorData
+    + setFillColor(ColorData c)
+    + getFillColor() : ColorData
+    + contains(Point2D p) : boolean
+    + accept(ShapeVisitor v)
+    + clone() : Shape
+    + getBounds() : Rect
+    + setRotation(double angle)
+    + getRotation() : double
+    + setText(String text)
+    + getText() : String
+    + setFontSize(double size)
+    + getFontSize() : double
+    + cloneWithNewId() : Shape
+  }
+
+  class RectangleShape implements Shape {
+    - id: UUID
+    - bounds: Rect
+    - strokeColor: ColorData
+    - fillColor: ColorData
+    - rotationAngle: double
+    ' Methods from Shape interface
+    + getId() : UUID
+    + move(Vector2D v)
+    + resize(Rect bounds)
+    + setStrokeColor(ColorData c)
+    + getStrokeColor() : ColorData
+    + setFillColor(ColorData c)
+    + getFillColor() : ColorData
+    + contains(Point2D p) : boolean
+    + accept(ShapeVisitor v)
+    + clone() : Shape
+    + getBounds() : Rect
+    + setRotation(double angle)
+    + getRotation() : double
+    + setText(String text)
+    + getText() : String
+    + setFontSize(double size)
+    + getFontSize() : double
+    + cloneWithNewId() : Shape
+  }
+
+  class EllipseShape implements Shape {
+    - id: UUID
+    - bounds: Rect
+    - strokeColor: ColorData
+    - fillColor: ColorData
+    - rotationAngle: double
+    ' Methods from Shape interface
+    + getId() : UUID
+    + move(Vector2D v)
+    + resize(Rect bounds)
+    + setStrokeColor(ColorData c)
+    + getStrokeColor() : ColorData
+    + setFillColor(ColorData c)
+    + getFillColor() : ColorData
+    + contains(Point2D p) : boolean
+    + accept(ShapeVisitor v)
+    + clone() : Shape
+    + getBounds() : Rect
+    + setRotation(double angle)
+    + getRotation() : double
+    + setText(String text)
+    + getText() : String
+    + setFontSize(double size)
+    + getFontSize() : double
+    + cloneWithNewId() : Shape
+  }
+
+  class PolygonShape implements Shape {
+    - id: UUID
+    - vertices: List<Point2D>
+    - strokeColor: ColorData
+    - fillColor: ColorData
+    - rotationAngle: double
+    + getVertices() : List<Point2D>
+    ' Methods from Shape interface
+    + getId() : UUID
+    + move(Vector2D v)
+    + resize(Rect bounds)
+    + setStrokeColor(ColorData c)
+    + getStrokeColor() : ColorData
+    + setFillColor(ColorData c)
+    + getFillColor() : ColorData
+    + contains(Point2D p) : boolean
+    + accept(ShapeVisitor v)
+    + clone() : Shape
+    + getBounds() : Rect
+    + setRotation(double angle)
+    + getRotation() : double
+    + setText(String text)
+    + getText() : String
+    + setFontSize(double size)
+    + getFontSize() : double
+    + cloneWithNewId() : Shape
+  }
+
+  class TextShape implements Shape {
+    - id: UUID
+    - text: String
+    - baseFontSize: double
+    - fontName: String
+    - textColor: ColorData
+    - rotationAngle: double
+    - drawingBounds: Rect
+    + getPosition() : Point2D
+    + getFontName() : String
+    + getBaseFontSize() : double
+    + getDrawingBounds() : Rect
+    ' Methods from Shape interface
+    + getId() : UUID
+    + move(Vector2D v)
+    + resize(Rect bounds)
+    + setStrokeColor(ColorData c)
+    + getStrokeColor() : ColorData
+    + setFillColor(ColorData c)
+    + getFillColor() : ColorData
+    + contains(Point2D p) : boolean
+    + accept(ShapeVisitor v)
+    + clone() : Shape
+    + getBounds() : Rect
+    + setRotation(double angle)
+    + getRotation() : double
+    + setText(String text)
+    + getText() : String
+    + setFontSize(double size)
+    + getFontSize() : double
+    + cloneWithNewId() : Shape
+  }
+}
+
+package sad.gruppo11.Model.geometry {
+  class Point2D {
+    - x: double
+    - y: double
+    + getX() : double
+    + getY() : double
+    + distance(Point2D other) : double
+    + translate(double dx, double dy)
+  }
+
+  class Vector2D {
+    - dx: double
+    - dy: double
+    + getDx() : double
+    + getDy() : double
+    + length() : double
+    + normalize()
+    + inverse() : Vector2D
+  }
+  Point2D ..> Vector2D : uses
+
+  class Rect {
+    - topLeft: Point2D
+    - width: double
+    - height: double
+    + getTopLeft() : Point2D
+    + getWidth() : double
+    + getHeight() : double
+    + getCenter() : Point2D
+    + contains(Point2D p) : boolean
+  }
+  Rect o-- "1" Point2D : topLeft
+
+  class ColorData {
+    - r: int
+    - g: int
+    - b: int
+    - a: double
+    + {static} BLACK: ColorData
+    + {static} TRANSPARENT: ColorData
+    + getR() : int
+    + getG() : int
+    + getB() : int
+    + getA() : double
+  }
+}
+
+package sad.gruppo11.Infrastructure {
+  class CommandManager {
+    - undoStack: Stack<Command>
+    - redoStack: Stack<Command>
+    - drawingModel: Drawing
+    + executeCommand(Command cmd)
+    + undo()
+    + redo()
+    + canUndo() : boolean
+    + canRedo() : boolean
+    + setDrawingModel(Drawing model)
+  }
+  CommandManager o-- "0..*" Command : manages
+  CommandManager ..> Drawing : notifies
+
+  class Clipboard {
+    - {static} instance: Clipboard
+    - content: Shape
+    + {static} getInstance() : Clipboard
+    + set(Shape shape)
+    + get() : Shape
+    + isEmpty() : boolean
+  }
+  Clipboard o-- "0..1" Shape : holds copy
+
+  abstract class AbstractShapeCommand implements sad.gruppo11.Infrastructure.Command {
+    # receiverShape: Shape
+    + {abstract} execute()
+    + {abstract} undo()
+  }
+  AbstractShapeCommand o-- "1" Shape
+
+  abstract class AbstractDrawingCommand implements sad.gruppo11.Infrastructure.Command {
+    # receiverDrawing: Drawing
+    + {abstract} execute()
+    + {abstract} undo()
+  }
+  AbstractDrawingCommand o-- "1" Drawing
+
+  class AddShapeCommand extends AbstractDrawingCommand {
+    - shapeToAdd: Shape
+    + execute()
+    + undo()
+  }
+  AddShapeCommand o-- "1" Shape
+
+  class DeleteShapeCommand extends AbstractDrawingCommand {
+    - shapeToRemove: Shape
+    + execute()
+    + undo()
+  }
+  DeleteShapeCommand o-- "1" Shape
+
+  class MoveShapeCommand extends AbstractShapeCommand {
+    - moveVector: Vector2D
+    + execute()
+    + undo()
+  }
+  MoveShapeCommand ..> Vector2D
+
+  class ResizeShapeCommand extends AbstractShapeCommand {
+    - newBounds: Rect
+    - oldBounds: Rect
+    + execute()
+    + undo()
+  }
+  ResizeShapeCommand ..> Rect
+
+  class RotateShapeCommand extends AbstractShapeCommand {
+    - targetAngle: double
+    - oldAngle: double
+    + execute()
+    + undo()
+  }
+
+  class ChangeStrokeColorCommand extends AbstractShapeCommand {
+    - newColor: ColorData
+    - oldColor: ColorData
+    + execute()
+    + undo()
+  }
+  ChangeStrokeColorCommand ..> ColorData
+
+  class ChangeFillColorCommand extends AbstractShapeCommand {
+    - newColor: ColorData
+    - oldColor: ColorData
+    + execute()
+    + undo()
+  }
+  ChangeFillColorCommand ..> ColorData
+
+  class ChangeTextContentCommand extends AbstractShapeCommand {
+    - newContent: String
+    - oldContent: String
+    + execute()
+    + undo()
+  }
+
+  class ChangeTextSizeCommand extends AbstractShapeCommand {
+    - newSize: double
+    - oldSize: double
+    + execute()
+    + undo()
+  }
+
+  class CopyShapeCommand extends AbstractShapeCommand {
+    - clipboard: Clipboard
+    + execute()
+    + undo() ' Likely a no-op for undo
+  }
+  CopyShapeCommand ..> Clipboard
+
+  class PasteShapeCommand extends AbstractDrawingCommand {
+    - clipboard: Clipboard
+    - pastedShapeInstance: Shape
+    - pasteOffset: Vector2D
+    + execute()
+    + undo()
+  }
+  PasteShapeCommand ..> Clipboard
+  PasteShapeCommand ..> Vector2D
+  PasteShapeCommand o-- "0..1" Shape
+
+  class CutShapeCommand extends AbstractShapeCommand {
+    - drawing: Drawing
+    - clipboard: Clipboard
+    + execute()
+    + undo()
+  }
+  CutShapeCommand ..> Drawing
+  CutShapeCommand ..> Clipboard
+
+  class BringToFrontCommand extends AbstractDrawingCommand {
+    - shapeToModify: Shape
+    + execute()
+    + undo()
+  }
+  BringToFrontCommand o-- "1" Shape
+
+  class SendToBackCommand extends AbstractDrawingCommand {
+    - shapeToModify: Shape
+    + execute()
+    + undo()
+  }
+  SendToBackCommand o-- "1" Shape
+}
+
+package sad.gruppo11.Factory {
+  class ShapeFactory {
+    + createShape(String toolName, Point2D p1, Point2D p2, ColorData stroke, ColorData fill, Map<String, Object> opt) : Shape
+  }
+  ShapeFactory ..> Shape : creates
+  ShapeFactory ..> Point2D
+  ShapeFactory ..> ColorData
+  ShapeFactory ..> Rect
+  ShapeFactory ..> LineSegment
+  ShapeFactory ..> RectangleShape
+  ShapeFactory ..> EllipseShape
+  ShapeFactory ..> PolygonShape
+  ShapeFactory ..> TextShape
+}
+
+package sad.gruppo11.Persistence {
+  class PersistenceController {
+    - serializer: IDrawingSerializer
+    + saveDrawing(Drawing d, String path)
+    + loadDrawing(String path) : Drawing
+  }
+  PersistenceController o-- "1" IDrawingSerializer
+
+  class DrawingSerializer implements sad.gruppo11.Persistence.IDrawingSerializer {
+    + save(Drawing d, String path)
+    + load(String path) : Drawing
+  }
+  DrawingSerializer ..> Drawing
+}
+
+package sad.gruppo11.Controller {
+  class GeoEngine implements sad.gruppo11.Model.Observable {
+    - currentState: ToolState
+    - drawing: Drawing
+    - cmdMgr: CommandManager
+    - persistenceController: PersistenceController
+    - clipboard: Clipboard
+    - shapeFactory: ShapeFactory
+    - view: DrawingView
+    - selectedShape: Shape
+    - currentStrokeColorForNewShapes: ColorData
+    - currentFillColorForNewShapes: ColorData
+    - currentZoom: double
+    - scrollOffsetX: double
+    - scrollOffsetY: double
+    - gridEnabled: boolean
+    - gridSize: double
+    - toolStates: Map<String, ToolState>
+    + setState(String stateName)
+    + onMousePressed(Point2D p)
+    + onMouseDragged(Point2D p) ' Added for completeness with ToolState
+    + onMouseReleased(Point2D p) ' Added for completeness with ToolState
+    + addShapeToDrawing(Shape shape)
+    + saveDrawing(String path)
+    + loadDrawing(String path)
+    + getDrawing() : Drawing
+    + getSelectedShape() : Shape
+    + setSelectedShape(Shape shape)
+    + attach(Observer o)
+    + detach(Observer o)
+    + notifyObservers(Object arg)
+  }
+  GeoEngine o-- "1" ToolState : activeState
+  GeoEngine o-- "1" Drawing : manages
+  GeoEngine o-- "1" CommandManager : uses
+  GeoEngine o-- "1" PersistenceController : uses
+  GeoEngine o-- "1" Clipboard : uses
+  GeoEngine o-- "1" ShapeFactory : uses
+  GeoEngine o-- "1..*" ToolState : availableStates
+  GeoEngine --> "0..1" Shape : selectedShape
+  GeoEngine ..> Point2D
+  GeoEngine ..> ColorData
+  GeoEngine ..> Rect
+  GeoEngine ..> Vector2D
+  GeoEngine "1" --o "0..1" sad.gruppo11.View.DrawingView : controls
+
+  class SelectState implements sad.gruppo11.Controller.ToolState {
+    - mode: Mode (enum)
+    - pressPos: Point2D
+    - lastPos: Point2D
+    - shapeAtPress: Shape
+    + onMousePressed(GeoEngine engine, Point2D p)
+    + onMouseDragged(GeoEngine engine, Point2D p)
+    + onMouseReleased(GeoEngine engine, Point2D p)
+    + getName() : String
+    + activate(GeoEngine engine)
+    + deactivate(GeoEngine engine)
+  }
+  SelectState ..> Point2D
+  SelectState ..> Shape
+  SelectState ..> Vector2D
+  SelectState ..> MoveShapeCommand
+
+  class LineState implements sad.gruppo11.Controller.ToolState {
+    - firstPoint: Point2D
+    + onMousePressed(GeoEngine engine, Point2D p)
+    + onMouseDragged(GeoEngine engine, Point2D p)
+    + onMouseReleased(GeoEngine engine, Point2D p)
+    + getName() : String
+    + activate(GeoEngine engine)
+    + deactivate(GeoEngine engine)
+  }
+  LineState ..> Point2D
+  LineState ..> LineSegment : creates ghost
+
+  class RectangleState implements sad.gruppo11.Controller.ToolState {
+    - firstCorner: Point2D
+    + onMousePressed(GeoEngine engine, Point2D p)
+    + onMouseDragged(GeoEngine engine, Point2D p)
+    + onMouseReleased(GeoEngine engine, Point2D p)
+    + getName() : String
+    + activate(GeoEngine engine)
+    + deactivate(GeoEngine engine)
+  }
+  RectangleState ..> Point2D
+  RectangleState ..> RectangleShape : creates ghost
+
+  class EllipseState implements sad.gruppo11.Controller.ToolState {
+    - firstCorner: Point2D
+    + onMousePressed(GeoEngine engine, Point2D p)
+    + onMouseDragged(GeoEngine engine, Point2D p)
+    + onMouseReleased(GeoEngine engine, Point2D p)
+    + getName() : String
+    + activate(GeoEngine engine)
+    + deactivate(GeoEngine engine)
+  }
+  EllipseState ..> Point2D
+  EllipseState ..> EllipseShape : creates ghost
+
+  class PolygonState implements sad.gruppo11.Controller.ToolState {
+    - currentPoints: List<Point2D>
+    - isDrawing: boolean
+    + onMousePressed(GeoEngine engine, Point2D p)
+    + onMouseDragged(GeoEngine engine, Point2D p)
+    + onMouseReleased(GeoEngine engine, Point2D p)
+    + getName() : String
+    + activate(GeoEngine engine)
+    + deactivate(GeoEngine engine)
+  }
+  PolygonState ..> Point2D
+
+  class TextState implements sad.gruppo11.Controller.ToolState {
+    + onMousePressed(GeoEngine engine, Point2D p)
+    + onMouseDragged(GeoEngine engine, Point2D p)
+    + onMouseReleased(GeoEngine engine, Point2D p)
+    + getName() : String
+    + activate(GeoEngine engine)
+    + deactivate(GeoEngine engine)
+  }
+  TextState ..> Point2D
+}
+
+package sad.gruppo11.View {
+  class CanvasPanel {
+    - canvas: javafx.scene.canvas.Canvas
+    - gc: javafx.scene.canvas.GraphicsContext
+    - renderer: JavaFXShapeRenderer
+    - zoomFactor: double
+    - offsetX: double
+    - offsetY: double
+    - gridEnabled: boolean
+    - gridSize: double
+    - temporaryGhostShape: Shape
+    + drawShapes(Iterable<Shape> shapes)
+    + setTransform(double zoom, double newOffsetX, double newOffsetY)
+    + screenToWorld(Point2D screenPoint) : Point2D
+    + setTemporaryGhostShape(Shape ghostShape)
+    + clearTemporaryVisuals()
+  }
+  CanvasPanel o-- "1" JavaFXShapeRenderer : uses
+  CanvasPanel ..> Shape
+  CanvasPanel ..> Point2D
+  CanvasPanel ..> javafx.scene.canvas.Canvas : uses (dependency)
+
+
+  class DrawingView implements sad.gruppo11.View.Observer {
+    - controller: GeoEngine
+    - canvasPanel: CanvasPanel
+    - currentDrawingModel: Drawing
+    - primaryStage: javafx.stage.Stage
+    + render()
+    + getUserInputForPath(boolean saveDialog) : String
+    + showError(String message)
+    + promptForText(String promptMessage) : String
+    + drawTemporaryGhostShape(Shape ghostShape)
+    + update(Observable source, Object arg)
+  }
+  DrawingView o-- "1" GeoEngine : interactsWith
+  DrawingView o-- "1" CanvasPanel : displaysOn
+  DrawingView ..> Drawing : observes
+  DrawingView ..> Shape : for temporary drawing
+  DrawingView ..> Point2D
+
+  class JavaFXShapeRenderer implements sad.gruppo11.View.ShapeVisitor {
+    - gc: javafx.scene.canvas.GraphicsContext
+    - defaultLineWidth: double
+    - currentlySelectedShapeForRendering: Shape
+    + {static} convertModelToFxColor(ColorData colorData) : javafx.scene.paint.Color
+    + visit(RectangleShape r)
+    + visit(EllipseShape e)
+    + visit(LineSegment l)
+    + visit(PolygonShape p)
+    + visit(TextShape t)
+  }
+  JavaFXShapeRenderer ..> javafx.scene.canvas.GraphicsContext : drawsOn
+  JavaFXShapeRenderer ..> Shape : renders
+  JavaFXShapeRenderer ..> ColorData
+  JavaFXShapeRenderer ..> Point2D
+  JavaFXShapeRenderer ..> Rect
+}
+
+package sad.gruppo11 {
+  class MainApp extends javafx.application.Application implements sad.gruppo11.View.Observer {
+    - geoEngine: GeoEngine
+    - drawingView: DrawingView
+    - primaryStage: javafx.stage.Stage
+    ' FXML injected fields like Buttons, TextFields, etc.
+    + start(Stage primaryStage)
+    + update(Observable source, Object arg)
+  }
+  MainApp o-- "1" GeoEngine : configuresAndUses
+  MainApp o-- "1" DrawingView : configuresAndUses
+  MainApp ..> Drawing : observes (via GeoEngine or directly if Drawing is also Observable source)
+  MainApp ..> CommandManager : (via GeoEngine)
+  MainApp ..> Clipboard : (via GeoEngine)
+  MainApp ..> ShapeFactory : (via GeoEngine)
+  MainApp ..> PersistenceController : (via GeoEngine)
+  MainApp ..> Shape : selectedShape (via GeoEngine)
+  MainApp ..> ColorData : for pickers
+}
+
+' --------------------------------------------------
+' Emphasize Observer pattern (relazioni già presenti)
+' --------------------------------------------------
+
+note "MainApp initializes and wires\n most core components." as N1
+sad.gruppo11.MainApp .. N1
+
+note "GeoEngine acts as a facade\n for UI interactions with the model\n and manages application state (Context for State Pattern)." as N2
+sad.gruppo11.Controller.GeoEngine .. N2
+
+note "Shape hierarchy uses Visitor pattern\n for rendering (JavaFXShapeRenderer)." as N3
+sad.gruppo11.Model.Shape .. N3
+sad.gruppo11.View.ShapeVisitor .. N3
+
+note "Command pattern for undo/redo functionality.\n CommandManager is the Invoker." as N4
+sad.gruppo11.Infrastructure.Command .. N4
+sad.gruppo11.Infrastructure.CommandManager .. N4
+
+note "ShapeFactory encapsulates shape creation (Simple Factory)." as N5
+sad.gruppo11.Factory.ShapeFactory .. N5
+
+note "Drawing and GeoEngine are Observables.\n DrawingView and MainApp are Observers." as N6
+sad.gruppo11.Model.Observable .. N6
+sad.gruppo11.View.Observer .. N6
+
+@enduml
