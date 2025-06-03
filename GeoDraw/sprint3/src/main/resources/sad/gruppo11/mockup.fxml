@@ -408,7 +408,7 @@
                   </TextField>
                       <TitledPane animated="false" collapsible="true" maxHeight="96.0" maxWidth="191.0" text="Stretch">
                           <content>
-                              <VBox disable="true" spacing="5.0" style="-fx-padding: 10;">
+                              <VBox spacing="5.0" style="-fx-padding: 10;">
                                   <HBox spacing="5.0">
                               <Label text="X">
                                  <HBox.margin>
