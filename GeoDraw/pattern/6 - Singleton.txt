@@ -1,0 +1,39 @@
+@startuml
+skinparam classAttributeIconSize 0
+hide empty members
+
+class Clipboard <<Singleton>> {
+  -instance: Clipboard {static}
+  -content: Shape
+  --
+  -Clipboard()
+  +getInstance(): Clipboard {static}
+  +set(Shape)
+  +get(): Shape
+  +isEmpty(): boolean
+  +clear()
+}
+
+package sad.gruppo11.Infrastructure {
+  class CutShapeCommand { 
+' Client example
+     -clipboard: Clipboard
+     +execute() { clipboard.set(shapeToCut); }
+  }
+   class PasteShapeCommand { 
+' Client example
+     -clipboard: Clipboard
+     +execute() { Shape s = clipboard.get(); }
+   }
+}
+
+CutShapeCommand ..> Clipboard : uses
+PasteShapeCommand ..> Clipboard : uses
+
+note top of Clipboard
+  Assicura una singola istanza
+  e fornisce un punto di accesso globale.
+  Costruttore privato.
+  Metodo statico getInstance().
+end note
+@enduml

@@ -1,0 +1,72 @@
+@startuml
+skinparam classAttributeIconSize 0
+hide empty members
+
+interface Command <<Command>> {
+  +execute()
+  +undo()
+}
+
+abstract class AbstractShapeCommand {
+  #receiverShape: Shape
+  #drawing: Drawing
+  +AbstractShapeCommand(Drawing, Shape)
+}
+AbstractShapeCommand .up.|> Command
+
+class MoveShapeCommand <<ConcreteCommand>> extends AbstractShapeCommand {
+  -moveVector: Vector2D
+  +MoveShapeCommand(Drawing, Shape, Vector2D)
+  +execute()
+  +undo()
+}
+
+' Add other ConcreteCommands like AddShapeCommand, ChangeFillColorCommand etc.
+
+' For AddShapeCommand, it might extend AbstractDrawingCommand
+
+class CommandManager <<Invoker>> {
+  -undoStack: Stack<Command>
+  -redoStack: Stack<Command>
+  +executeCommand(Command)
+  +undo()
+  +redo()
+}
+
+package sad.gruppo11.Controller {
+  class GeoEngine <<Client>> {
+    -cmdMgr: CommandManager
+    +moveSelectedShapes(Vector2D) 
+' Creates MoveShapeCommand
+  }
+}
+
+
+package sad.gruppo11.Model {
+  class Drawing <<Receiver>> {
+    +moveShape(Shape, Vector2D)
+    
+' ... altre operazioni ...
+  }
+}
+
+
+GeoEngine o--> CommandManager
+CommandManager ..> Command : uses
+AbstractShapeCommand o--> Drawing
+MoveShapeCommand ..> Drawing : calls >
+Drawing ..> Shape : calls >
+
+
+note left of CommandManager
+  Gestisce gli stack undo/redo.
+  Esegue i comandi.
+end note
+
+note right of MoveShapeCommand
+  Incapsula l
+'azione di movimento,
+  il ricevitore (Shape/Drawing)
+  e i parametri (Vector2D).
+end note
+@enduml

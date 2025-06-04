@@ -1,0 +1,73 @@
+@startuml
+skinparam classAttributeIconSize 0
+hide empty members
+
+interface ShapeVisitor <<Visitor>> {
+  +visit(RectangleShape r)
+  +visit(EllipseShape e)
+  +visit(LineSegment l)
+  +visit(PolygonShape p)
+  +visit(TextShape t)
+  +visit(GroupShape g)
+}
+
+class JavaFXShapeRenderer <<ConcreteVisitor>> implements ShapeVisitor  {
+  -gc: GraphicsContext
+  +visit(RectangleShape r) { 
+'disegna rettangolo }
+  +visit(EllipseShape e) { 
+'disegna ellisse }
+  
+' ... implementazioni per ogni tipo di forma
+}
+
+interface Shape <<Element>> {
+  +accept(ShapeVisitor visitor)
+  
+' ...
+}
+
+class RectangleShape <<ConcreteElement>>  implements Shape {
+  +accept(ShapeVisitor visitor) { visitor.visit(this); }
+}
+class EllipseShape <<ConcreteElement>> implements Shape {
+  +accept(ShapeVisitor visitor) { visitor.visit(this); }
+}
+
+' ... other ConcreteElements (LineSegment, PolygonShape, TextShape, GroupShape)
+
+package sad.gruppo11.View {
+  class CanvasPanel { 
+' Client example
+    -renderer: JavaFXShapeRenderer
+    +drawShapes(Iterable<Shape>, Shape) {
+      
+' for shape in shapesToDraw:
+      
+'   shape.accept(renderer)
+    }
+  }
+}
+
+CanvasPanel o--> JavaFXShapeRenderer
+CanvasPanel ..> Shape : uses
+JavaFXShapeRenderer ..> Shape : visits >
+Shape <.. JavaFXShapeRenderer : depends on
+
+note right of ShapeVisitor
+  Definisce un
+'operazione di visita
+  per ogni tipo di Shape concreta.
+end note
+
+note left of JavaFXShapeRenderer
+  Implementa la logica di rendering
+  specifica per ogni tipo di Shape.
+end note
+
+note bottom of Shape
+  Il metodo accept() permette al Visitor
+  di operare sulla Shape specifica
+  (double dispatch).
+end note
+@enduml

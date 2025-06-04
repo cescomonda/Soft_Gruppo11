@@ -1,0 +1,51 @@
+@startuml
+skinparam classAttributeIconSize 0
+hide empty members
+
+interface ToolState <<State>> {
+  +onMousePressed(GeoEngine, Point2D)
+  +onMouseDragged(GeoEngine, Point2D)
+  +onMouseReleased(GeoEngine, Point2D)
+  +getName(): String
+  +activate(GeoEngine)
+  +deactivate(GeoEngine)
+}
+
+class LineState <<ConcreteState>> implements ToolState  {
+  +onMousePressed(GeoEngine, Point2D)
+  ' ...
+}
+class SelectState <<ConcreteState>> implements ToolState {
+  +onMousePressed(GeoEngine, Point2D)
+  ' ...
+}
+' ... other ConcreteStates (RectangleState, EllipseState, etc.)
+
+package sad.gruppo11.Controller {
+  class GeoEngine <<Context>> {
+    -currentState: ToolState
+    +setState(String toolName)
+    +onMousePressed(Point2D p) { currentState.onMousePressed(this, p); }
+    +onMouseDragged(Point2D p) { currentState.onMouseDragged(this, p); }
+    +onMouseReleased(Point2D p) { currentState.onMouseReleased(this, p); }
+    ' ...
+  }
+}
+
+
+GeoEngine o--> ToolState : currentState
+GeoEngine ..> LineState : uses/creates
+GeoEngine ..> SelectState : uses/creates
+' ... dependencies to other concrete states
+
+note right of GeoEngine
+  Delega il comportamento dipendente
+  dallo strumento corrente all'oggetto
+  ToolState attivo.
+end note
+
+note left of ToolState
+  Definisce l'interfaccia per
+  tutti gli stati (strumenti) possibili.
+end note
+@enduml

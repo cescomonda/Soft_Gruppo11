@@ -249,7 +249,7 @@ public class MainApp extends Application implements Observer {
             if (propertyPanelEnabled) {
                 strokeColorPicker.setValue(convertModelToFxColor(primarySelected.getStrokeColor()));
             } else { 
-                 strokeColorPicker.setValue(convertModelToFxColor(geoEngine.getCurrentStrokeColorForNewShapes()));
+                strokeColorPicker.setValue(convertModelToFxColor(geoEngine.getCurrentStrokeColorForNewShapes()));
             }
         }
         if (fillColorPicker != null) {
@@ -263,6 +263,7 @@ public class MainApp extends Application implements Observer {
                  fillColorPicker.setValue(Color.TRANSPARENT);
             }
         }
+
         
         updatePropertyPanelContent(primarySelected); 
 

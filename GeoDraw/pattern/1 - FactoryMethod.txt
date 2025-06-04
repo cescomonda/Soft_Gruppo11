@@ -1,0 +1,45 @@
+@startuml
+skinparam classAttributeIconSize 0
+hide empty members
+
+interface Shape {
+  +getId(): UUID
+  +move(Vector2D)
+  +resize(Rect)
+  +getBounds(): Rect
+  
+' ... altri metodi comuni ...
+}
+
+class LineSegment implements Shape
+class RectangleShape implements Shape
+class EllipseShape implements Shape
+class PolygonShape implements Shape
+class TextShape implements Shape
+
+' Add other concrete shapes if present
+
+class ShapeFactory {
+  +createShape(toolName, p1, p2, stroke, fill, params): Shape
+}
+
+package sad.gruppo11.Controller {
+  class GeoEngine { 
+'Or ToolState classes
+    
+' ...
+  }
+}
+
+GeoEngine ..> ShapeFactory : uses
+ShapeFactory ..> Shape : creates >
+
+' ... dependencies to other concrete shapes ...
+
+note right of ShapeFactory
+  Decide quale Shape concreta
+  istanziare basandosi su
+  toolName e parametri.
+  Restituisce l interfaccia Shape.
+end note
+@enduml

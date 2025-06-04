@@ -1,0 +1,70 @@
+@startuml
+skinparam classAttributeIconSize 0
+hide empty members
+
+interface Shape <<Prototype>> {
+  +clone(): Shape
+  +cloneWithNewId(): Shape
+  
+' ...
+}
+
+class LineSegment <<ConcretePrototype>> implements Shape  {
+  +clone(): Shape
+  +cloneWithNewId(): Shape
+}
+class GroupShape <<ConcretePrototype>> implements Shape {
+  +clone(): Shape
+  +cloneWithNewId(): Shape
+}
+
+' ... other ConcretePrototypes
+
+package sad.gruppo11.Controller {
+  class ReusableShapeDefinition {
+    -name: String
+    -prototype: Shape
+    +ReusableShapeDefinition(String, Shape)
+    +getPrototype(): Shape
+  }
+
+  class GeoEngine { 
+' Client example
+    +placeReusableShape(String name, Point2D position) {
+      
+' def = library.getDefinition(name)
+      
+' newInstance = def.getPrototype().cloneWithNewId()
+      
+' ...
+    }
+  }
+}
+
+package sad.gruppo11.Infrastructure {
+  class Clipboard { 
+' Client example
+     +set(Shape original) { content = original.clone(); }
+     +get(): Shape { return content.clone(); }
+  }
+}
+
+
+ReusableShapeDefinition o-- Shape : "prototype"
+GeoEngine ..> ReusableShapeDefinition : uses
+GeoEngine ..> Shape : creates via clone
+Clipboard ..> Shape : uses & creates via clone
+
+note top of Shape
+  Definisce i metodi di clonazione.
+  clone() per copia esatta (stesso ID, per Clipboard).
+  cloneWithNewId() per nuova istanza (nuovo ID,
+  per Paste e Reusable Shapes).
+end note
+
+note right of ReusableShapeDefinition
+  Memorizza una Shape "prototipo"
+  che può essere clonata per creare
+  nuove istanze.
+end note
+@enduml

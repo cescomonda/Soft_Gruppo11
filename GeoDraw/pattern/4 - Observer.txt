@@ -1,0 +1,67 @@
+@startuml
+skinparam classAttributeIconSize 0
+hide empty members
+
+interface Observable <<Subject>> {
+  +attach(Observer)
+  +detach(Observer)
+  +notifyObservers(Object)
+}
+
+interface Observer <<Observer>> {
+  +update(Observable, Object)
+}
+
+package sad.gruppo11.Model {
+  class Drawing <<ConcreteSubject>> implements Observable  {
+    -shapes: List<Shape>
+    -observers: List<Observer>
+    +addShape(Shape)
+    
+' ...
+  }
+  class GeoEngine <<ConcreteSubject>> implements Observable {
+    -selectedShapes: List<Shape>
+    -geoEngineObservers: List<Observer>
+    +setSelectedShapes(List<Shape>)
+    
+' ...
+  }
+}
+
+
+package sad.gruppo11.View {
+  class DrawingView <<ConcreteObserver>> implements Observer {
+    -controller: GeoEngine
+    -currentDrawingModel: Drawing
+    +render()
+    +update(Observable, Object)
+  }
+}
+
+package sad.gruppo11 {
+  class MainApp <<ConcreteObserver>> implements Observer {
+    -geoEngine: GeoEngine
+    +refreshUIState()
+    +update(Observable, Object)
+  }
+}
+
+DrawingView .up.> GeoEngine : observes
+DrawingView .up.> Drawing : observes
+MainApp .up.> GeoEngine : observes
+MainApp .up.> Drawing : observes
+
+
+note right of Drawing
+  Notifica gli Observer quando
+  il suo stato (es. lista di forme)
+  cambia.
+end note
+
+note left of DrawingView
+  Si aggiorna (es. ridisegnando)
+  quando riceve notifiche dai
+  soggetti che osserva.
+end note
+@enduml

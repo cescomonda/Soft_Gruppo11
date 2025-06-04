@@ -1,0 +1,65 @@
+@startuml
+skinparam classAttributeIconSize 0
+hide empty members
+
+package sad.gruppo11.Controller {
+  class GeoEngine <<Client>> {
+    -persistenceController: PersistenceController
+    +saveDrawing(String path)
+    +loadDrawing(String path)
+    +exportReusableLibrary(String path)
+    +importReusableLibrary(String path)
+  }
+}
+
+package sad.gruppo11.Persistence {
+  interface IDrawingSerializer <<SubSystem Interface 1>> {
+    +save(Drawing, String)
+    +load(String): Drawing
+  }
+
+  class DrawingSerializer <<SubSystem Class 1>> implements IDrawingSerializer
+
+  interface IReusableShapeLibrarySerializer <<SubSystem Interface 2>> {
+    +save(ReusableShapeLibrary, String)
+    +load(String): ReusableShapeLibrary
+  }
+
+  class ReusableShapeLibrarySerializer <<SubSystem Class 2>> implements IReusableShapeLibrarySerializer
+
+  class PersistenceController <<Facade>> {
+    -drawingSerializer: IDrawingSerializer
+    -librarySerializer: IReusableShapeLibrarySerializer
+    +PersistenceController(IDrawingSerializer, IReusableShapeLibrarySerializer)
+    --
+    +saveDrawing(Drawing d, String path)
+    +loadDrawing(String path): Drawing
+    +exportReusableLibrary(ReusableShapeLibrary lib, String path)
+    +importReusableLibrary(String path): ReusableShapeLibrary
+  }
+}
+
+GeoEngine --> PersistenceController : uses >
+PersistenceController o--> IDrawingSerializer : uses >
+PersistenceController o--> IReusableShapeLibrarySerializer : uses >
+
+note right of PersistenceController
+  Semplifica l'accesso al sottosistema
+  di persistenza, fornendo un'interfaccia
+  unificata per salvare/caricare sia i disegni
+  che le librerie di forme riutilizzabili.
+  Il client (GeoEngine) non deve conoscere
+  i singoli serializer.
+end note
+
+note top of IDrawingSerializer
+  Sottosistema per la
+  serializzazione dei disegni.
+end note
+
+note bottom of IReusableShapeLibrarySerializer
+  Sottosistema per la
+  serializzazione delle librerie
+  di forme riutilizzabili.
+end note
+@enduml

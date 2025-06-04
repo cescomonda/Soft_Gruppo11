@@ -1,0 +1,54 @@
+@startuml
+skinparam classAttributeIconSize 0
+hide empty members
+
+interface Shape <<Component>> {
+  +getId(): UUID
+  +move(Vector2D)
+  +resize(Rect)
+  +getBounds(): Rect
+  +accept(ShapeVisitor)
+  
+' --- Composite Methods ---
+  +add(Shape)
+  +remove(Shape)
+  +getChild(int): Shape
+  +getChildren(): List<Shape>
+  +isComposite(): boolean
+}
+
+abstract class AbstractBaseShape <<Leaf Helper>> {
+  +add(Shape): void {throws UnsupportedOperationException}
+  +remove(Shape): void {throws UnsupportedOperationException}
+  +getChild(int): Shape {throws UnsupportedOperationException}
+  +getChildren(): List<Shape> {returns emptyList}
+  +isComposite(): boolean {returns false}
+}
+AbstractBaseShape .up.|> Shape
+
+class LineSegment <<Leaf>> extends AbstractBaseShape
+class RectangleShape <<Leaf>> extends AbstractBaseShape
+class EllipseShape <<Leaf>> extends AbstractBaseShape
+class TextShape <<Leaf>> extends AbstractBaseShape
+
+' ... other Leaf shapes (Ellipse, Polygon, TextShape) ...
+
+class GroupShape <<Composite>> {
+  -children: List<Shape>
+  +add(Shape s)
+  +remove(Shape s)
+  +getChild(int i): Shape
+  +getChildren(): List<Shape>
+  +isComposite(): boolean {returns true}
+  
+' Operazioni delegate ai figli (move, resize, etc.)
+}
+GroupShape .up.|> Shape
+GroupShape "1" *-- "0..*" Shape : contains >
+
+note right of GroupShape
+  Contiene una lista di Shape (figli).
+  Delega le operazioni ai figli.
+  Implementa i metodi per gestire i figli.
+end note
+@enduml
